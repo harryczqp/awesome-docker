@@ -8,5 +8,17 @@ services:
     volumes:
       - ./data:/root
     network_mode: "host"
+    depends_on:
+      - hbbr
+    restart: unless-stopped
 
+  hbbr:
+    container_name: hbbr
+    image: rustdesk/rustdesk-server:latest
+    environment:
+      - TZ=Asia/Shanghai
+    command: hbbr
+    volumes:
+      - ./data:/root
+    network_mode: "host"
     restart: unless-stopped
