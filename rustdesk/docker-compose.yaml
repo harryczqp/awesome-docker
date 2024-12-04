@@ -6,8 +6,9 @@ services:
       - TZ=Asia/Shanghai
     command: hbbs
     volumes:
-      - ./data:/root
+      - rustdesk_data:/root
     network_mode: "host"
+
     depends_on:
       - hbbr
     restart: unless-stopped
@@ -19,6 +20,9 @@ services:
       - TZ=Asia/Shanghai
     command: hbbr
     volumes:
-      - ./data:/root
+      - rustdesk_data:/root
     network_mode: "host"
     restart: unless-stopped
+
+volumes:
+  rustdesk_data:
