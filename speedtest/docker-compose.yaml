@@ -5,4 +5,4 @@ services:
     image: ghcr.io/librespeed/speedtest:latest
     restart: always
     ports:
-      - "80:80" # webport mapping (host:container)
+      - "20011:80" # webport mapping (host:container)
