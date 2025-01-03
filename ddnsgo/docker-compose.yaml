@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   ddns-go:
     image: jeessy/ddns-go:${IMAGE_TAG:-latest}
