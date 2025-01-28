@@ -1,0 +1,17 @@
+version: '3.3'
+
+services:
+  x-ui:
+    image: enwaiax/x-ui:latest
+    restart: always
+    container_name: x-ui
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - "./workdir/db:/etc/x-ui"
+      - "./workdir/cert:/root/cert"
+    logging:
+        driver: "json-file"
+        options:
+            max-size: "1m"
+    network_mode: host
