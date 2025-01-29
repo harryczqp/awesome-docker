@@ -1,15 +1,17 @@
-version: '3.3'
+version: "3"
 
 services:
-  x-ui:
-    image: enwaiax/x-ui:alpha-zh
-    restart: always
-    container_name: x-ui-new
+  3x-ui:
+    image: ghcr.io/mhsanaei/3x-ui:latest
+    restart: unless-stopped
+    container_name: 3x-ui
     environment:
       - TZ=Asia/Shanghai
+      - XRAY_VMESS_AEAD_FORCED= "false"
     volumes:
       - "./workdir/db:/etc/x-ui"
       - "./workdir/cert:/root/cert"
+    tty: true
     logging:
         driver: "json-file"
         options:
