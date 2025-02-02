@@ -1,0 +1,10 @@
+services:
+  renewx:
+    image: harryczqp/renewx
+    restart: always
+    container_name: renewx
+    volumes:
+      - "./workdir/deploy:/app/RenewX/Deploy"
+      - "./workdir/appdata:/app/RenewX/appdata"
+    ports:
+      - "1066:1066/tcp"
