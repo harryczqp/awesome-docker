@@ -5,5 +5,6 @@
 - 3x-ui
 - adguard
 - ddnsgo
+- renewx
 - rustdesk
 - speedtest
