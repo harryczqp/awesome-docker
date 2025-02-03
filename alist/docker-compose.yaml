@@ -1,0 +1,16 @@
+version: '3.3'
+
+services:
+  alist:
+    image: xhofe/alist:latest
+    restart: always
+    container_name: alist
+    logging:
+        driver: "json-file"
+        options:
+            max-size: "1m"
+    volumes:
+      - "./workdir/data:/opt/alist/data"
+    ports:
+      - "5244:5244/tcp"
+    # network_mode: host
