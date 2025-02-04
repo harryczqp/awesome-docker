@@ -1,0 +1,15 @@
+version: '3.3'
+
+services:
+  alist:
+    image: wikihostinc/looking-glass-server:latest
+    restart: always
+    container_name: als
+    logging:
+        driver: "json-file"
+        options:
+            max-size: "1m"
+    ports:
+      - "8401:80/tcp"
+    # network_mode: host
+
