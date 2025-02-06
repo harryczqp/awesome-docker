@@ -1,0 +1,24 @@
+
+version: '3.3'
+
+services:
+  code-server:
+    image: codercom/code-server
+    restart: always
+    container_name: code-server
+    environment:
+      - TZ=Asia/Shanghai
+      - DOCKER_USER=$USER
+      - PASSWORD=123456
+    volumes:
+      # - "./workdir:/home/coder/workdir"
+      - "$PWD/../:/docker-compose-file"
+      - "$PWD/../../:/server-file"
+      # - "$PWD/workdir/code-server/:/root/.config/code-server/config.yaml"
+    logging:
+        driver: "json-file"
+        options:
+            max-size: "1m"
+    ports:
+      - "1080:8080/tcp"
+    user: "${UID}:${GID}"
