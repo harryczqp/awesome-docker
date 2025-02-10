@@ -1,0 +1,21 @@
+version: '3'
+services:
+  zerotier:
+    image: 'zerotier/zerotier:latest'
+    container_name: zerotier
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN 
+    devices:
+      - "/dev/net/tun:/dev/net/tun"
+    restart: always
+    privileged: true
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - './config/route.list:/config/route.list:ro'
+    logging:
+        driver: "json-file"
+        options:
+            max-size: "1m"
+    network_mode: host
