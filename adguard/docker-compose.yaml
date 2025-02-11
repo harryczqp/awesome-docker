@@ -1,6 +1,6 @@
 services:
   adguard:
-    image: adguard/adguardhome
+    image: adguard/adguardhome:${IMAGE_TAG:-latest}
     restart: always
     container_name: adguard
     volumes:
