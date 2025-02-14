@@ -1,0 +1,20 @@
+version: "3.8"
+services:
+  rustdesk-api-server:
+    container_name: rustdesk-api-server
+    image: ghcr.io/kingmo888/rustdesk-api-server:${IMAGE_TAG:-latest}
+    environment:
+      - TZ=Asia/Shanghai
+      # - CSRF_TRUSTED_ORIGINS=http://yourdomain.com:21114 #防跨域信任来源，可选
+      # - ID_SERVER=yourdomain.com #Web控制端使用的ID服务器
+    volumes:
+      - rustdesk_api_data:/rustdesk-api-server/db
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    network_mode: bridge
+    ports:
+      - "21114:21114"
+    restart: unless-stopped
+
+volumes:
+  rustdesk_api_data:
