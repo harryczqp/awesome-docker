@@ -1,0 +1,17 @@
+services:
+  lucky:
+    image: gdy666/lucky
+    restart: always
+    container_name: lucky
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - lucky_data:/goodluck
+    logging:
+        driver: "json-file"
+        options:
+            max-size: "1m"
+    network_mode: host
+
+volumes:
+  lucky_data:
