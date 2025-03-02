@@ -17,13 +17,13 @@ services:
         volumes:
             - prometheus:/etc/prometheus/
             - prometheus:/prometheus
-            - /etc/localtime:/etc/localtime:ro
-            - /etc/timezone:/etc/timezone:ro
+            # - /etc/localtime:/etc/localtime:ro
+            # - /etc/timezone:/etc/timezone:ro
         environment:
             - TZ=Asia/Shanghai
     grafana:
         container_name: grafana
-        image: grafana/grafana:11.5.2
+        image: grafana/grafana-oss
         ports:
             - 9091:3000
         restart: always
