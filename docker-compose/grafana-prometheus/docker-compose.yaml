@@ -17,6 +17,8 @@ services:
         volumes:
             - prometheus:/etc/prometheus/
             - prometheus:/prometheus
+            - /etc/localtime:/etc/localtime:ro
+            - /etc/timezone:/etc/timezone:ro
         environment:
             - TZ=Asia/Shanghai
     grafana:
@@ -30,7 +32,7 @@ services:
             - grafana:/var/lib/grafana
         environment:
             - TZ=Asia/Shanghai
-            
+
 volumes:
     prometheus:
     grafana:
