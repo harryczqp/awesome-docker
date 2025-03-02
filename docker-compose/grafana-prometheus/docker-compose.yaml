@@ -17,6 +17,8 @@ services:
         volumes:
             - prometheus:/etc/prometheus/
             - prometheus:/prometheus
+        environment:
+            - TZ=Asia/Shanghai
     grafana:
         container_name: grafana
         image: grafana/grafana:11.5.2
@@ -26,7 +28,9 @@ services:
         user: "0"
         volumes:
             - grafana:/var/lib/grafana
-
+        environment:
+            - TZ=Asia/Shanghai
+            
 volumes:
     prometheus:
     grafana:
