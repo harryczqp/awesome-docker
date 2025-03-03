@@ -1,0 +1,23 @@
+services:
+  wg-easy:
+    container_name: wg-easy
+    image: ghcr.io/wg-easy/wg-easy:${IMAGE_TAG:-latest}
+    environment:
+      - TZ=Asia/Shanghai
+      - LANG=de
+      - WG_HOST=:${WG_HOST:-ali.svc.ggit.cc}
+      - PASSWORD_HASH=$2a$12$1Hb9CpApWSWGQYzRiWHAcuIiqlXZisgD.hdX6L4rO1vxcY7cCbwvS
+      - PORT=51821
+      - WG_PORT=51820
+    ports:
+      - "51820:51820/udp"
+      - "51821:51821/tcp"
+    volumes:
+      - ~/.wg-easy:/etc/wireguard
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv4.ip_forward=1
+    restart: unless-stopped
