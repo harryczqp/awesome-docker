@@ -8,9 +8,9 @@ services:
       - WG_HOST=ali.svc.ggit.cc
       - PASSWORD_HASH=$$2a$$12$$FyV58ORLej6AxyTNWZcK5.naOFb1.wobT08xLxrS/agTKl4NhRfHW
       - PORT=51821
-      - WG_PORT=51820
+      - WG_PORT=21820
     ports:
-      - "51820:51820/udp"
+      - "21820:21820/udp"
       - "51821:51821/tcp"
     volumes:
       - ~/.wg-easy:/etc/wireguard
