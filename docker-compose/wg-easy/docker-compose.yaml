@@ -5,7 +5,7 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - LANG=de
-      - WG_HOST=:${WG_HOST:-ali.svc.ggit.cc}
+      - WG_HOST=ali.svc.ggit.cc
       - PASSWORD_HASH=$$2a$$12$$FyV58ORLej6AxyTNWZcK5.naOFb1.wobT08xLxrS/agTKl4NhRfHW
       - PORT=51821
       - WG_PORT=51820
