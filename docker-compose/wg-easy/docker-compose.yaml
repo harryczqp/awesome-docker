@@ -1,7 +1,7 @@
 services:
   wg-easy:
     container_name: wg-easy
-    image: registry.cn-hangzhou.aliyuncs.com/harryczqp/wg-easy:latest
+    image: ghcr.nju.edu.cn/wg-easy/wg-easy:${IMAGE_TAG:-latest}
     environment:
       - TZ=Asia/Shanghai
       - LANG=de
