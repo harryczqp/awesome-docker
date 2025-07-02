@@ -4,7 +4,10 @@ services:
     restart: always
     container_name: renewx
     volumes:
-      - "./workdir/deploy:/app/RenewX/Deploy"
-      - "./workdir/appdata:/app/RenewX/appdata"
+      - "rustdesk_data/deploy:/app/RenewX/Deploy"
+      - "rustdesk_data/appdata:/app/RenewX/appdata"
     ports:
       - "1066:1066/tcp"
+
+volumes:
+  rustdesk_data:
