@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     network_mode: "host"
     volumes:
-      - $PWD/:/etc/sing-box/
+      - /etc/sing-box/:/etc/sing-box/
     cap_add:
       - NET_ADMIN
     devices:
