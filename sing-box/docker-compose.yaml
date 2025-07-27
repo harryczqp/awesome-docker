@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  sing-box:
+    image: gzxhwq/sing-box:1.12.0-rc.3
+    restart: unless-stopped
+    network_mode: "host"
+    volumes:
+      - $PWD/:/etc/sing-box/
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    environment:
+      - TZ=Asia/Shanghai
