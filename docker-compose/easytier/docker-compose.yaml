@@ -1,0 +1,35 @@
+services:
+  # watchtower: # 用于自动更新easytier镜像，若不需要请删除这部分
+  #   image: containrrr/watchtower
+  #   container_name: watchtower
+  #   restart: unless-stopped
+  #   environment:
+  #     - TZ=Asia/Shanghai
+  #     - WATCHTOWER_NO_STARTUP_MESSAGE
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   command: --interval 3600 --cleanup --label-enable
+  easytier:
+    image: easytier/easytier:latest # 国内用户可以使用 m.daocloud.io/docker.io/easytier/easytier:latest
+    hostname: easytier
+    container_name: easytier
+    labels:
+      com.centurylinklabs.watchtower.enable: 'true'
+    restart: unless-stopped
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      - TZ=Asia/Shanghai
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    volumes:
+      # - /etc/easytier:/root
+      # - /etc/machine-id:/etc/machine-id:ro # 映射宿主机机器码
+      - easytier_data:/root
+      - easytier_data:/etc/machine-id:ro
+#  --private-mode true --network-name my-network --network-secret my-secret
+    command: -d --network-name <用户> --network-secret <密码> -p tcp://public.easytier.cn:11010
+volumes:
+  easytier_data:
