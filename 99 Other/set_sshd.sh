@@ -17,14 +17,13 @@
 #             3. 禁用/启用用户
 #             4. 删除用户
 #             5. 修改用户 Sudo 权限
-# 作者:     Gemini
 #================================================================================
 
 # --- 全局变量 ---
 # SSH 配置文件的路径
 SSH_CONFIG="/etc/ssh/sshd_config"
-# 备份文件的路径和名称，加入时间戳以防重复
-BACKUP_FILE="/etc/ssh/sshd_config.bak.$(date +%F_%T)"
+# 备份文件的路径和名称 (简化为单个文件)
+BACKUP_FILE="/etc/ssh/sshd_config.bak.script"
 # 标记是否已创建备份
 BACKUP_CREATED=0
 
@@ -110,12 +109,9 @@ change_ssh_port() {
     fi
 
     create_backup
-
-    # --- 已更新：更稳健的端口修改逻辑 ---
-    # 1. 先删除所有已存在的 Port 或 # Port 行，避免重复和匹配问题
+    # 1. 先删除所有已存在的 Port 或 # Port 行
     sed -i '/^[[:space:]]*#\?[[:space:]]*Port/d' "$SSH_CONFIG"
-
-    # 2. 在文件末尾添加新的 Port 配置，确保其生效
+    # 2. 在文件末尾添加新的 Port 配置
     echo "Port ${new_port}" >> "$SSH_CONFIG"
     
     if [ $? -eq 0 ]; then
@@ -132,11 +128,13 @@ change_ssh_port() {
 enable_rsa_auth() {
     create_backup
     echo "正在启用密钥登录..."
-    sed -i 's/^#*PubkeyAuthentication.*/PubkeyAuthentication yes/' "$SSH_CONFIG"
-    sed -i 's/^#*RSAAuthentication.*/RSAAuthentication yes/' "$SSH_CONFIG"
-    grep -q "^PubkeyAuthentication" "$SSH_CONFIG" || echo "PubkeyAuthentication yes" >> "$SSH_CONFIG"
-    grep -q "^RSAAuthentication" "$SSH_CONFIG" || echo "RSAAuthentication yes" >> "$SSH_CONFIG"
+    # 使用更可靠的“先删除后添加”逻辑
+    sed -i '/^[[:space:]]*#\?[[:space:]]*PubkeyAuthentication/d' "$SSH_CONFIG"
+    sed -i '/^[[:space:]]*#\?[[:space:]]*RSAAuthentication/d' "$SSH_CONFIG"
+    echo "PubkeyAuthentication yes" >> "$SSH_CONFIG"
+    echo "RSAAuthentication yes" >> "$SSH_CONFIG"
     echo "密钥登录已在配置文件中启用。"
+    
     read -p "是否需要为您生成一个新的 RSA 密钥对？(y/n): " generate_key
     if [[ "$generate_key" =~ ^[Yy]$ ]]; then
         read -p "请输入保存密钥的文件路径 (例如: /root/.ssh/id_rsa)，直接回车将使用默认值: " key_path
@@ -157,7 +155,7 @@ enable_rsa_auth() {
 
 # 3. 切换密码登录
 toggle_password_auth() {
-    current_status=$(grep -E "^#?PasswordAuthentication" "$SSH_CONFIG" | awk '{print $2}' | tail -n 1)
+    current_status=$(grep -E "^[[:space:]]*#?[[:space:]]*PasswordAuthentication" "$SSH_CONFIG" | awk '{print $2}' | tail -n 1)
     if [[ "$current_status" == "yes" ]]; then
         read -p "当前允许密码登录。您想禁用吗？(y/n): " choice
         [[ "$choice" =~ ^[Yy]$ ]] && new_status="no" || { echo "操作取消。"; return; }
@@ -167,18 +165,19 @@ toggle_password_auth() {
     fi
 
     create_backup
-    if grep -qE "^#?PasswordAuthentication" "$SSH_CONFIG"; then
-        sed -i "s/^#?PasswordAuthentication.*/PasswordAuthentication ${new_status}/" "$SSH_CONFIG"
-    else
-        echo "PasswordAuthentication ${new_status}" >> "$SSH_CONFIG"
-    fi
+    # --- 已更新：更稳健的修改逻辑 ---
+    # 1. 先删除所有已存在的 PasswordAuthentication 行
+    sed -i '/^[[:space:]]*#\?[[:space:]]*PasswordAuthentication/d' "$SSH_CONFIG"
+    # 2. 在文件末尾添加新的配置
+    echo "PasswordAuthentication ${new_status}" >> "$SSH_CONFIG"
+
     echo "密码登录配置已更新为: $new_status"
     restart_ssh_service
 }
 
 # 4. 切换 root 远程登录
 toggle_root_login() {
-    current_status=$(grep -E "^#?PermitRootLogin" "$SSH_CONFIG" | awk '{print $2}' | tail -n 1)
+    current_status=$(grep -E "^[[:space:]]*#?[[:space:]]*PermitRootLogin" "$SSH_CONFIG" | awk '{print $2}' | tail -n 1)
     if [[ "$current_status" == "yes" ]]; then
         read -p "当前允许 root 远程登录。您想禁用吗？(y/n): " choice
         [[ "$choice" =~ ^[Yy]$ ]] && new_status="no" || { echo "操作取消。"; return; }
@@ -188,11 +187,12 @@ toggle_root_login() {
     fi
 
     create_backup
-    if grep -qE "^#?PermitRootLogin" "$SSH_CONFIG"; then
-        sed -i "s/^#?PermitRootLogin.*/PermitRootLogin ${new_status}/" "$SSH_CONFIG"
-    else
-        echo "PermitRootLogin ${new_status}" >> "$SSH_CONFIG"
-    fi
+    # --- 已更新：更稳健的修改逻辑 ---
+    # 1. 先删除所有已存在的 PermitRootLogin 行
+    sed -i '/^[[:space:]]*#\?[[:space:]]*PermitRootLogin/d' "$SSH_CONFIG"
+    # 2. 在文件末尾添加新的配置
+    echo "PermitRootLogin ${new_status}" >> "$SSH_CONFIG"
+    
     echo "Root 用户登录配置已更新为: $new_status"
     restart_ssh_service
 }
@@ -243,7 +243,6 @@ add_user() {
         if [ $? -eq 0 ]; then
             echo "用户 '$username' 创建成功。"
             
-            # --- 新增逻辑：询问是否加入用户组 ---
             read -p "是否要将用户 '$username' 添加到已存在的用户组？(y/n): " add_to_group
             if [[ "$add_to_group" =~ ^[Yy]$ ]]; then
                 read -p "请输入要加入的用户组名称: " group_name_to_join
@@ -261,8 +260,6 @@ add_user() {
                     echo "错误：用户组 '$group_name_to_join' 不存在。"
                 fi
             fi
-            # --- 新增逻辑结束 ---
-            
             echo "请为新用户设置密码："
             passwd "$username"
         else
@@ -404,7 +401,6 @@ main() {
             8) echo "感谢使用，脚本退出。"; exit 0 ;;
             *) echo "无效的输入，请输入 1 到 8 之间的数字。" ;;
         esac
-        # 仅在主菜单循环中等待
         if [[ "$choice" != "5" && "$choice" != "8" ]]; then
              read -p "按 [Enter] 键返回主菜单..."
         fi
