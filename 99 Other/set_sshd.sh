@@ -64,23 +64,13 @@ restart_ssh_service() {
     echo "正在尝试重启 SSH 服务以应用更改..."
     # 使用 systemctl (现代系统)
     if command -v systemctl &> /dev/null; then
-        # --- 已更新：优先处理 systemd socket activation ---
-        # 检查 ssh.socket 单元是否存在并被使用
-        if systemctl list-units --type=socket | grep -q 'ssh.socket'; then
-            echo "检测到 systemd socket activation。将重启 ssh.socket..."
-            # 重新加载 systemd 管理的配置文件，以识别 socket 文件的变化
-            systemctl daemon-reload
-            # 重启 socket 单元以应用新的端口
-            systemctl restart ssh.socket
-        # --- 回退到传统服务重启 ---
-        elif systemctl is-active --quiet sshd; then
-            echo "正在重启 sshd.service..."
+        # 尝试常见的服务名称 sshd 和 ssh
+        if systemctl is-active --quiet sshd; then
             systemctl restart sshd
         elif systemctl is-active --quiet ssh; then
-            echo "正在重启 ssh.service..."
             systemctl restart ssh
         else
-            echo "警告：找不到正在运行的 sshd, ssh 服务或 ssh.socket。"
+            echo "警告：找不到正在运行的 sshd 或 ssh 服务。"
             return 1
         fi
     # 使用 service (旧版系统)
