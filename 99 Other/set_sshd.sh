@@ -64,13 +64,23 @@ restart_ssh_service() {
     echo "正在尝试重启 SSH 服务以应用更改..."
     # 使用 systemctl (现代系统)
     if command -v systemctl &> /dev/null; then
-        # 尝试常见的服务名称 sshd 和 ssh
-        if systemctl is-active --quiet sshd; then
+        # --- 已更新：优先处理 systemd socket activation ---
+        # 检查 ssh.socket 单元是否存在并被使用
+        if systemctl list-units --type=socket | grep -q 'ssh.socket'; then
+            echo "检测到 systemd socket activation。将重启 ssh.socket..."
+            # 重新加载 systemd 管理的配置文件，以识别 socket 文件的变化
+            systemctl daemon-reload
+            # 重启 socket 单元以应用新的端口
+            systemctl restart ssh.socket
+        # --- 回退到传统服务重启 ---
+        elif systemctl is-active --quiet sshd; then
+            echo "正在重启 sshd.service..."
             systemctl restart sshd
         elif systemctl is-active --quiet ssh; then
+            echo "正在重启 ssh.service..."
             systemctl restart ssh
         else
-            echo "警告：找不到正在运行的 sshd 或 ssh 服务。"
+            echo "警告：找不到正在运行的 sshd, ssh 服务或 ssh.socket。"
             return 1
         fi
     # 使用 service (旧版系统)
@@ -100,7 +110,7 @@ restart_ssh_service() {
 
 # 1. 修改 SSH 端口
 change_ssh_port() {
-    current_port=$(grep -E "^#?Port" "$SSH_CONFIG" | awk '{print $2}' | head -n 1)
+    current_port=$(grep -E "^[[:space:]]*#?[[:space:]]*Port" "$SSH_CONFIG" | awk '{print $2}' | head -n 1)
     echo "当前 SSH 端口是: ${current_port:-22}"
     read -p "请输入新的 SSH 端口号 (1-65535): " new_port
 
@@ -110,15 +120,23 @@ change_ssh_port() {
     fi
 
     create_backup
-    if grep -qE "^#?Port" "$SSH_CONFIG"; then
-        sed -i "s/^#?Port.*/Port ${new_port}/" "$SSH_CONFIG"
+
+    # --- 已更新：更稳健的端口修改逻辑 ---
+    # 1. 先删除所有已存在的 Port 或 # Port 行，避免重复和匹配问题
+    sed -i '/^[[:space:]]*#\?[[:space:]]*Port/d' "$SSH_CONFIG"
+
+    # 2. 在文件末尾添加新的 Port 配置，确保其生效
+    echo "Port ${new_port}" >> "$SSH_CONFIG"
+    
+    if [ $? -eq 0 ]; then
+        echo "配置文件已更新。SSH 端口已修改为: $new_port"
+        echo "提醒：如果您的服务器启用了防火墙，请确保放行新的端口 ${new_port}。"
+        restart_ssh_service
     else
-        echo "Port ${new_port}" >> "$SSH_CONFIG"
+        echo "错误：修改配置文件失败！"
     fi
-    echo "SSH 端口已修改为: $new_port"
-    echo "提醒：如果您的服务器启用了防火墙，请确保放行新的端口 ${new_port}。"
-    restart_ssh_service
 }
+
 
 # 2. 启用 RSA 密钥验证
 enable_rsa_auth() {
