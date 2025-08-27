@@ -58,6 +58,25 @@ create_backup() {
     fi
 }
 
+# --- 已更新：查找所有相关的 SSH 配置文件 ---
+get_all_ssh_config_files() {
+    local files=("$SSH_CONFIG")
+    # 检查主配置文件是否存在且可读
+    if [ -r "$SSH_CONFIG" ]; then
+        # 查找 Include 指令，并处理 glob 模式
+        # 使用 grep 查找，awk 提取路径，xargs ls -1d 解析路径
+        # eval to handle potential tilde expansion, though unlikely in sshd_config
+        local included_files
+        included_files=$(grep -E "^[[:space:]]*Include" "$SSH_CONFIG" | awk '{print $2}' | xargs -r ls -1d 2>/dev/null)
+        if [ -n "$included_files" ]; then
+            files+=($included_files)
+        fi
+    fi
+    # 返回一个唯一的、以空格分隔的文件列表
+    echo "${files[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '
+}
+
+
 # 重启 SSH 服务以应用更改
 restart_ssh_service() {
     echo "正在尝试重启 SSH 服务以应用更改..."
@@ -99,7 +118,7 @@ restart_ssh_service() {
 
 # 1. 修改 SSH 端口
 change_ssh_port() {
-    current_port=$(grep -E "^[[:space:]]*#?[[:space:]]*Port" "$SSH_CONFIG" | awk '{print $2}' | head -n 1)
+    current_port=$(grep -hE "^[[:space:]]*#?[[:space:]]*Port" $(get_all_ssh_config_files) | awk '{print $2}' | tail -n 1)
     echo "当前 SSH 端口是: ${current_port:-22}"
     read -p "请输入新的 SSH 端口号 (1-65535): " new_port
 
@@ -109,9 +128,14 @@ change_ssh_port() {
     fi
 
     create_backup
-    # 1. 先删除所有已存在的 Port 或 # Port 行
-    sed -i '/^[[:space:]]*#\?[[:space:]]*Port/d' "$SSH_CONFIG"
-    # 2. 在文件末尾添加新的 Port 配置
+    
+    local all_configs
+    all_configs=$(get_all_ssh_config_files)
+    echo "正在检查并清理以下配置文件中的 Port 设置: $all_configs"
+    for config_file in $all_configs; do
+        sed -i '/^[[:space:]]*#\?[[:space:]]*Port/d' "$config_file"
+    done
+    
     echo "Port ${new_port}" >> "$SSH_CONFIG"
     
     if [ $? -eq 0 ]; then
@@ -127,10 +151,15 @@ change_ssh_port() {
 # 2. 启用 RSA 密钥验证
 enable_rsa_auth() {
     create_backup
-    echo "正在启用密钥登录..."
-    # 使用更可靠的“先删除后添加”逻辑
-    sed -i '/^[[:space:]]*#\?[[:space:]]*PubkeyAuthentication/d' "$SSH_CONFIG"
-    sed -i '/^[[:space:]]*#\?[[:space:]]*RSAAuthentication/d' "$SSH_CONFIG"
+    
+    local all_configs
+    all_configs=$(get_all_ssh_config_files)
+    echo "正在检查并清理以下配置文件中的密钥认证设置: $all_configs"
+    for config_file in $all_configs; do
+        sed -i '/^[[:space:]]*#\?[[:space:]]*PubkeyAuthentication/d' "$config_file"
+        sed -i '/^[[:space:]]*#\?[[:space:]]*RSAAuthentication/d' "$config_file"
+    done
+
     echo "PubkeyAuthentication yes" >> "$SSH_CONFIG"
     echo "RSAAuthentication yes" >> "$SSH_CONFIG"
     echo "密钥登录已在配置文件中启用。"
@@ -155,15 +184,18 @@ enable_rsa_auth() {
 
 # 3. 切换密码登录
 toggle_password_auth() {
-    current_status=$(grep -E "^[[:space:]]*#?[[:space:]]*PasswordAuthentication" "$SSH_CONFIG" | awk '{print $2}' | tail -n 1)
+    current_status=$(grep -hE "^[[:space:]]*#?[[:space:]]*PasswordAuthentication" $(get_all_ssh_config_files) | awk '{print $2}' | tail -n 1)
     if [[ "$current_status" == "yes" ]]; then
         read -p "当前允许密码登录。您想禁用吗？(y/n): " choice
         if [[ "$choice" =~ ^[Yy]$ ]]; then
             create_backup
-            # --- 已更新：同时禁用 PasswordAuthentication 和 ChallengeResponseAuthentication ---
-            echo "正在禁用所有形式的密码登录..."
-            sed -i '/^[[:space:]]*#\?[[:space:]]*PasswordAuthentication/d' "$SSH_CONFIG"
-            sed -i '/^[[:space:]]*#\?[[:space:]]*ChallengeResponseAuthentication/d' "$SSH_CONFIG"
+            local all_configs
+            all_configs=$(get_all_ssh_config_files)
+            echo "正在禁用所有形式的密码登录，清理以下文件: $all_configs"
+            for config_file in $all_configs; do
+                sed -i '/^[[:space:]]*#\?[[:space:]]*PasswordAuthentication/d' "$config_file"
+                sed -i '/^[[:space:]]*#\?[[:space:]]*ChallengeResponseAuthentication/d' "$config_file"
+            done
             echo "PasswordAuthentication no" >> "$SSH_CONFIG"
             echo "ChallengeResponseAuthentication no" >> "$SSH_CONFIG"
             echo "密码登录配置已更新。"
@@ -174,9 +206,13 @@ toggle_password_auth() {
         read -p "当前禁止密码登录。您想启用吗？(y/n): " choice
         if [[ "$choice" =~ ^[Yy]$ ]]; then
             create_backup
-            echo "正在启用密码登录..."
-            sed -i '/^[[:space:]]*#\?[[:space:]]*PasswordAuthentication/d' "$SSH_CONFIG"
-            sed -i '/^[[:space:]]*#\?[[:space:]]*ChallengeResponseAuthentication/d' "$SSH_CONFIG"
+            local all_configs
+            all_configs=$(get_all_ssh_config_files)
+            echo "正在启用密码登录，清理以下文件: $all_configs"
+            for config_file in $all_configs; do
+                sed -i '/^[[:space:]]*#\?[[:space:]]*PasswordAuthentication/d' "$config_file"
+                sed -i '/^[[:space:]]*#\?[[:space:]]*ChallengeResponseAuthentication/d' "$config_file"
+            done
             echo "PasswordAuthentication yes" >> "$SSH_CONFIG"
             echo "ChallengeResponseAuthentication yes" >> "$SSH_CONFIG"
             echo "密码登录配置已更新。"
@@ -189,7 +225,7 @@ toggle_password_auth() {
 
 # 4. 切换 root 远程登录
 toggle_root_login() {
-    current_status=$(grep -E "^[[:space:]]*#?[[:space:]]*PermitRootLogin" "$SSH_CONFIG" | awk '{print $2}' | tail -n 1)
+    current_status=$(grep -hE "^[[:space:]]*#?[[:space:]]*PermitRootLogin" $(get_all_ssh_config_files) | awk '{print $2}' | tail -n 1)
     if [[ "$current_status" == "yes" ]]; then
         read -p "当前允许 root 远程登录。您想禁用吗？(y/n): " choice
         [[ "$choice" =~ ^[Yy]$ ]] && new_status="no" || { echo "操作取消。"; return; }
@@ -199,10 +235,13 @@ toggle_root_login() {
     fi
 
     create_backup
-    # --- 已更新：更稳健的修改逻辑 ---
-    # 1. 先删除所有已存在的 PermitRootLogin 行
-    sed -i '/^[[:space:]]*#\?[[:space:]]*PermitRootLogin/d' "$SSH_CONFIG"
-    # 2. 在文件末尾添加新的配置
+    local all_configs
+    all_configs=$(get_all_ssh_config_files)
+    echo "正在检查并清理以下配置文件中的 PermitRootLogin 设置: $all_configs"
+    for config_file in $all_configs; do
+        sed -i '/^[[:space:]]*#\?[[:space:]]*PermitRootLogin/d' "$config_file"
+    done
+
     echo "PermitRootLogin ${new_status}" >> "$SSH_CONFIG"
     
     echo "Root 用户登录配置已更新为: $new_status"
