@@ -158,20 +158,32 @@ toggle_password_auth() {
     current_status=$(grep -E "^[[:space:]]*#?[[:space:]]*PasswordAuthentication" "$SSH_CONFIG" | awk '{print $2}' | tail -n 1)
     if [[ "$current_status" == "yes" ]]; then
         read -p "当前允许密码登录。您想禁用吗？(y/n): " choice
-        [[ "$choice" =~ ^[Yy]$ ]] && new_status="no" || { echo "操作取消。"; return; }
+        if [[ "$choice" =~ ^[Yy]$ ]]; then
+            create_backup
+            # --- 已更新：同时禁用 PasswordAuthentication 和 ChallengeResponseAuthentication ---
+            echo "正在禁用所有形式的密码登录..."
+            sed -i '/^[[:space:]]*#\?[[:space:]]*PasswordAuthentication/d' "$SSH_CONFIG"
+            sed -i '/^[[:space:]]*#\?[[:space:]]*ChallengeResponseAuthentication/d' "$SSH_CONFIG"
+            echo "PasswordAuthentication no" >> "$SSH_CONFIG"
+            echo "ChallengeResponseAuthentication no" >> "$SSH_CONFIG"
+            echo "密码登录配置已更新。"
+        else
+            echo "操作取消。"; return;
+        fi
     else
         read -p "当前禁止密码登录。您想启用吗？(y/n): " choice
-        [[ "$choice" =~ ^[Yy]$ ]] && new_status="yes" || { echo "操作取消。"; return; }
+        if [[ "$choice" =~ ^[Yy]$ ]]; then
+            create_backup
+            echo "正在启用密码登录..."
+            sed -i '/^[[:space:]]*#\?[[:space:]]*PasswordAuthentication/d' "$SSH_CONFIG"
+            sed -i '/^[[:space:]]*#\?[[:space:]]*ChallengeResponseAuthentication/d' "$SSH_CONFIG"
+            echo "PasswordAuthentication yes" >> "$SSH_CONFIG"
+            echo "ChallengeResponseAuthentication yes" >> "$SSH_CONFIG"
+            echo "密码登录配置已更新。"
+        else
+            echo "操作取消。"; return;
+        fi
     fi
-
-    create_backup
-    # --- 已更新：更稳健的修改逻辑 ---
-    # 1. 先删除所有已存在的 PasswordAuthentication 行
-    sed -i '/^[[:space:]]*#\?[[:space:]]*PasswordAuthentication/d' "$SSH_CONFIG"
-    # 2. 在文件末尾添加新的配置
-    echo "PasswordAuthentication ${new_status}" >> "$SSH_CONFIG"
-
-    echo "密码登录配置已更新为: $new_status"
     restart_ssh_service
 }
 
