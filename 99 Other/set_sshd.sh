@@ -46,6 +46,7 @@ create_backup() {
     fi
     # 仅在首次修改前创建一次备份
     if [ $BACKUP_CREATED -eq 0 ]; then
+        # 备份主配置文件
         echo "正在备份当前 SSH 配置文件到: $BACKUP_FILE ..."
         cp "$SSH_CONFIG" "$BACKUP_FILE"
         if [ $? -eq 0 ]; then
@@ -55,22 +56,32 @@ create_backup() {
             echo "错误：备份失败！脚本将退出以确保安全。"
             exit 1
         fi
+        # 同时备份 include 目录
+        local include_dir
+        include_dir=$(dirname "$SSH_CONFIG")/sshd_config.d
+        if [ -d "$include_dir" ]; then
+            echo "正在备份 include 目录: $include_dir"
+            cp -r "$include_dir" "${BACKUP_FILE}.d"
+        fi
     fi
 }
 
-# --- 已更新：查找所有相关的 SSH 配置文件 ---
+# --- 已更新：更可靠地查找所有相关的 SSH 配置文件 ---
 get_all_ssh_config_files() {
     local files=("$SSH_CONFIG")
-    # 检查主配置文件是否存在且可读
     if [ -r "$SSH_CONFIG" ]; then
-        # 查找 Include 指令，并处理 glob 模式
-        # 使用 grep 查找，awk 提取路径，xargs ls -1d 解析路径
-        # eval to handle potential tilde expansion, though unlikely in sshd_config
-        local included_files
-        included_files=$(grep -E "^[[:space:]]*Include" "$SSH_CONFIG" | awk '{print $2}' | xargs -r ls -1d 2>/dev/null)
-        if [ -n "$included_files" ]; then
-            files+=($included_files)
-        fi
+        # 读取所有 include 模式
+        local patterns
+        patterns=$(grep -E "^[[:space:]]*Include" "$SSH_CONFIG" | awk '{print $2}')
+        
+        for pattern in $patterns; do
+            # 直接使用 shell 的 glob 扩展，更安全可靠
+            local expanded_files=( $pattern )
+            # 检查 glob 是否匹配到任何文件，以避免添加文字 "* .conf"
+            if [ ${#expanded_files[@]} -gt 0 ] && [ -e "${expanded_files[0]}" ]; then
+                files+=("${expanded_files[@]}")
+            fi
+        done
     fi
     # 返回一个唯一的、以空格分隔的文件列表
     echo "${files[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '
@@ -253,9 +264,20 @@ rollback_changes() {
     if [ -f "$BACKUP_FILE" ]; then
         read -p "您确定要回滚所有更改，恢复到备份文件 '$BACKUP_FILE' 的状态吗？(y/n): " choice
         if [[ "$choice" =~ ^[Yy]$ ]]; then
-            echo "正在从备份恢复..."
+            echo "正在从备份恢复主配置文件..."
             cp "$BACKUP_FILE" "$SSH_CONFIG"
-            [ $? -eq 0 ] && echo "恢复成功。" || echo "错误：恢复失败！"
+            [ $? -eq 0 ] && echo "主配置文件恢复成功。" || echo "错误：主配置文件恢复失败！"
+            
+            local include_dir_backup="${BACKUP_FILE}.d"
+            if [ -d "$include_dir_backup" ]; then
+                echo "正在从备份恢复 include 目录..."
+                local include_dir
+                include_dir=$(dirname "$SSH_CONFIG")/sshd_config.d
+                rm -rf "$include_dir"
+                cp -r "$include_dir_backup" "$include_dir"
+                [ $? -eq 0 ] && echo "include 目录恢复成功。" || echo "错误：include 目录恢复失败！"
+            fi
+            
             restart_ssh_service
         else
             echo "回滚操作已取消。"
