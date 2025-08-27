@@ -50,6 +50,7 @@ bantime = 30d
 banaction = ufw
 action = %(action_mwl)s
 logpath = /var/log/auth.log
+backend = auto
 EOF
 
     echo "配置文件创建成功。"
