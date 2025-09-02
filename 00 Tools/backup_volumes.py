@@ -230,6 +230,56 @@ def print_usage():
     print("  restore - 从备份文件恢复 Docker 卷")
     print("  prune   - 清理 (删除) 所有未使用的 Docker 卷")
 
+def cleanup_old_backups():
+    """根据环境变量配置的天数清理旧的备份文件"""
+    try:
+        retention_days_str = os.getenv('BACKUP_RETENTION_DAYS')
+        if not retention_days_str:
+            print("提示: 未设置 BACKUP_RETENTION_DAYS 环境变量，不执行清理操作。")
+            return
+        
+        retention_days = int(retention_days_str)
+        if retention_days <= 0:
+            print("提示: BACKUP_RETENTION_DAYS 必须为正数，不执行清理。")
+            return
+            
+    except (ValueError, TypeError):
+        print(f"警告: 无效的 BACKUP_RETENTION_DAYS 设置 ('{retention_days_str}')，必须是一个有效的整数。")
+        return
+
+    backup_dir = os.getenv('DOCKER_BACKUP_DIR', './docker_volume_backup')
+
+    if not os.path.isdir(backup_dir):
+        print(f"提示: 备份目录 '{backup_dir}' 不存在，无需清理。")
+        return
+
+    print(f"开始清理 {retention_days} 天前的备份文件...")
+    
+    now = datetime.datetime.now()
+    cutoff_date = now - datetime.timedelta(days=retention_days)
+    cleaned_count = 0
+
+    for filename in os.listdir(backup_dir):
+        if filename.startswith("docker_volumes_backup_") and filename.endswith(".tar"):
+            try:
+                timestamp_str = filename.replace("docker_volumes_backup_", "").replace(".tar", "")
+                file_date = datetime.datetime.strptime(timestamp_str, "%Y%m%d_%H%M%S")
+                
+                if file_date < cutoff_date:
+                    file_path = os.path.join(backup_dir, filename)
+                    os.remove(file_path)
+                    print(f"已删除旧备份: {filename}")
+                    cleaned_count += 1
+            except ValueError:
+                print(f"跳过: 无法从 '{filename}' 解析日期，文件名格式不正确。")
+                continue
+    
+    if cleaned_count > 0:
+        print(f"清理完成，共删除 {cleaned_count} 个旧备份。")
+    else:
+        print("没有找到需要清理的旧备份文件。")
+
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print_usage()
@@ -241,6 +291,7 @@ if __name__ == "__main__":
         list_volumes_and_usage()
     elif command == "backup":
         backup_volumes()
+        cleanup_old_backups()
     elif command == "restore":
         restore_volumes()
     elif command == "prune":
