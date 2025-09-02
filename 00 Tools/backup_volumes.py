@@ -33,12 +33,17 @@ def list_volumes_and_usage():
 
 def backup_volumes():
     """备份所有正在使用的 Docker 卷并打包为 tar 文件"""
+    # 从环境变量获取备份目录，如果未设置则使用默认值
+    backup_dir = os.getenv('DOCKER_BACKUP_DIR')
+    if not backup_dir:
+        backup_dir = "./docker_volume_backup"
+        print(f"提示: 未设置 DOCKER_BACKUP_DIR 环境变量，将使用默认备份路径: {backup_dir}")
+
     volumes = get_docker_volumes()
     if not volumes:
         print("没有找到任何 Docker 卷.")
         return
     
-    backup_dir = "./docker_volume_backup"
     os.makedirs(backup_dir, exist_ok=True)
     
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -86,11 +91,14 @@ def backup_volumes():
         if os.path.exists(backup_path):
             os.remove(backup_path)
 
-
-
 def restore_volumes():
     """从备份文件恢复 Docker 卷"""
-    backup_dir = "./docker_volume_backup"
+    # 从环境变量获取备份目录，如果未设置则使用默认值
+    backup_dir = os.getenv('DOCKER_BACKUP_DIR')
+    if not backup_dir:
+        backup_dir = "./docker_volume_backup"
+        print(f"提示: 未设置 DOCKER_BACKUP_DIR 环境变量，正在从默认路径查找备份: {backup_dir}")
+
     if not os.path.exists(backup_dir):
         print(f"备份目录 '{backup_dir}' 不存在.")
         return
@@ -134,13 +142,61 @@ def restore_volumes():
     except subprocess.CalledProcessError as e:
         print(f"恢复过程中发生错误: {e}")
 
+def prune_unused_volumes():
+    """清理所有未使用的 Docker 卷"""
+    print("正在查找未使用的 Docker 卷...")
+    volumes = get_docker_volumes()
+    if not volumes:
+        print("没有找到任何 Docker 卷.")
+        return
+
+    unused_volumes = []
+    for volume in volumes:
+        if not get_containers_for_volume(volume):
+            unused_volumes.append(volume)
+
+    if not unused_volumes:
+        print("没有找到任何未使用的 Docker 卷.")
+        return
+
+    print("\n找到以下未使用的 Docker 卷:")
+    for volume in unused_volumes:
+        print(f"  - {volume}")
+
+    try:
+        confirm = input("\n警告: 此操作将永久删除以上列出的卷。\n是否继续? (请输入 'yes' 进行确认): ")
+    except EOFError:
+        print("\n非交互式环境中无法确认，操作已取消.")
+        return
+
+    if confirm.lower() != 'yes':
+        print("操作已取消.")
+        return
+
+    print("\n开始清理未使用的卷...")
+    deleted_count = 0
+    for volume in unused_volumes:
+        try:
+            cmd = ["docker", "volume", "rm", volume]
+            subprocess.run(cmd, check=True, capture_output=True, text=True)
+            print(f"已删除: {volume}")
+            deleted_count += 1
+        except subprocess.CalledProcessError as e:
+            print(f"删除 {volume} 时出错: {e.stderr.strip()}")
+    
+    if deleted_count > 0:
+        print(f"\n清理完成，共删除 {deleted_count} 个卷。")
+    else:
+        print("\n没有卷被删除.")
+
 def print_usage():
     """打印脚本使用说明"""
     print("用法: python backup_volumes.py [命令]")
     print("命令:")
     print("  list    - 列出所有 Docker 卷及其容器使用情况")
-    print("  backup  - 备份所有 Docker 卷")
+    print("  backup  - 备份所有正在使用的 Docker 卷")
     print("  restore - 从备份文件恢复 Docker 卷")
+    print("  prune   - 清理 (删除) 所有未使用的 Docker 卷")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -155,6 +211,8 @@ if __name__ == "__main__":
         backup_volumes()
     elif command == "restore":
         restore_volumes()
+    elif command == "prune":
+        prune_unused_volumes()
     else:
         print(f"未知命令: {command}")
         print_usage()
