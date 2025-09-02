@@ -39,6 +39,13 @@ def backup_volumes():
         backup_dir = "./docker_volume_backup"
         print(f"提示: 未设置 DOCKER_BACKUP_DIR 环境变量，将使用默认备份路径: {backup_dir}")
 
+    # 检查是否启用停止容器功能
+    stop_containers_enabled = os.getenv('STOP_CONTAINERS_FOR_BACKUP', 'false').lower() in ('true', '1', 'yes')
+    if stop_containers_enabled:
+        print("提示: 已启用(STOP_CONTAINERS_FOR_BACKUP 环境变量)备份前停止容器功能。")
+    else:
+        print("提示: 未启用(STOP_CONTAINERS_FOR_BACKUP 环境变量)备份前停止容器功能。")
+
     volumes = get_docker_volumes()
     if not volumes:
         print("没有找到任何 Docker 卷.")
@@ -65,31 +72,56 @@ def backup_volumes():
             print(f"跳过: {volume} (路径不存在)")
             continue
 
-        if not volume.endswith('_data'):
-            container_name = containers[0]
-            new_name = f"{container_name}_data"
-            # 修正 transform 规则以正确重命名目录及其内容
-            transform_rule = f"s,^{volume},{new_name},"
-            tar_cmd = ["tar", "-rf", backup_path, "-C", volume_base_path, f"--transform={transform_rule}", volume]
-            log_message = f"已备份: {volume} (在压缩包中重命名为 {new_name})"
-        else:
-            tar_cmd = ["tar", "-rf", backup_path, "-C", volume_base_path, volume]
-            log_message = f"已备份: {volume}"
-
+        containers_to_restart = []
+        if stop_containers_enabled:
+            for container in containers:
+                try:
+                    status_cmd = ["docker", "inspect", "-f", "{{.State.Status}}", container]
+                    status_result = subprocess.run(status_cmd, check=True, capture_output=True, text=True)
+                    if status_result.stdout.strip() == 'running':
+                        print(f"  -> 正在停止容器 '{container}' 以安全备份卷 '{volume}'...")
+                        stop_cmd = ["docker", "stop", container]
+                        subprocess.run(stop_cmd, check=True, capture_output=True)
+                        containers_to_restart.append(container)
+                except subprocess.CalledProcessError as e:
+                    print(f"  -> 警告: 无法检查或停止容器 '{container}': {e.stderr.strip()}")
+        
         try:
-            subprocess.run(tar_cmd, check=True, capture_output=True)
-            print(log_message)
-            backed_up_count += 1
-        except subprocess.CalledProcessError as e:
-            print(f"备份 {volume} 时出错: {e.stderr.decode('utf-8', errors='ignore')}")
+            if not volume.endswith('_data'):
+                container_name = containers[0]
+                new_name = f"{container_name}_data"
+                transform_rule = f"s,^{volume},{new_name},"
+                tar_cmd = ["tar", "-rf", backup_path, "-C", volume_base_path, f"--transform={transform_rule}", volume]
+                log_message = f"已备份: {volume} (在压缩包中重命名为 {new_name})"
+            else:
+                tar_cmd = ["tar", "-rf", backup_path, "-C", volume_base_path, volume]
+                log_message = f"已备份: {volume}"
+
+            try:
+                subprocess.run(tar_cmd, check=True, capture_output=True)
+                print(log_message)
+                backed_up_count += 1
+            except subprocess.CalledProcessError as e:
+                print(f"备份 {volume} 时出错: {e.stderr.decode('utf-8', errors='ignore')}")
+        
+        finally:
+            if containers_to_restart:
+                print(f"  -> 正在重新启动为备份卷 '{volume}' 而停止的容器...")
+                for container in containers_to_restart:
+                    try:
+                        start_cmd = ["docker", "start", container]
+                        subprocess.run(start_cmd, check=True, capture_output=True)
+                        print(f"     - 已启动: {container}")
+                    except subprocess.CalledProcessError as e:
+                        print(f"     - 警告: 无法重新启动容器 '{container}': {e.stderr.strip()}")
 
     if backed_up_count > 0:
         print(f"\n成功备份 {backed_up_count} 个卷至 {backup_path}")
     else:
         print("\n没有需要备份的正在使用的卷.")
-        # 如果没有备份任何卷，删除可能已创建的 tar 文件
         if os.path.exists(backup_path):
             os.remove(backup_path)
+
 
 def restore_volumes():
     """从备份文件恢复 Docker 卷"""
