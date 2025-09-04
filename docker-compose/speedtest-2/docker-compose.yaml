@@ -11,5 +11,10 @@ services:
             max-size: "1m"
     ports:
       - "8401:80/tcp"
+      - "8402:8402/tcp"
+    environment:
+      - TZ=Asia/Shanghai
+      - UTILITIES_IPERF3_PORT_MAX=8402
+      - UTILITIES_IPERF3_PORT_MIN=8402
     # network_mode: host
 
