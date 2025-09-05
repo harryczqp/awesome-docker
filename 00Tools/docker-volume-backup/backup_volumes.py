@@ -36,7 +36,7 @@ def backup_volumes():
     # 从环境变量获取备份目录，如果未设置则使用默认值
     backup_dir = os.getenv('DOCKER_BACKUP_DIR')
     if not backup_dir:
-        backup_dir = "./docker_volume_backup"
+        backup_dir = "/mnt/onedrive"
         print(f"提示: 未设置 DOCKER_BACKUP_DIR 环境变量，将使用默认备份路径: {backup_dir}")
 
     # 检查是否启用停止容器功能

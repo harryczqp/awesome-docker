@@ -24,7 +24,7 @@
 
 | 环境变量 | 描述 | 默认值 |
 | :--- | :--- | :--- |
-| `DOCKER_BACKUP_DIR` | 指定存放备份文件 (`.tar`) 的目录。 | `./docker_volume_backup` |
+| `DOCKER_BACKUP_DIR` | 指定存放备份文件 (`.tar`) 的目录。 | `/mnt/onedrive` |
 | `STOP_CONTAINERS_FOR_BACKUP` | 如果设置为 `true`、`1` 或 `yes`，脚本会在备份一个卷之前停止使用它的容器，并在完成后重启它们。 | `false` |
 | `BACKUP_RETENTION_DAYS` | 设置备份文件的最长保留天数。每次成功备份后，脚本会删除超出此天数的旧备份。如果未设置，则不执行清理。 | (不清理) |
 
