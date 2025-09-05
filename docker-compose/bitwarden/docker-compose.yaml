@@ -11,8 +11,11 @@ services:
         driver: "json-file"
         options:
             max-size: "1m"
+    network_mode: bridge
     ports:
       - "9191:80/tcp"
     volumes:
-      - "./workdir/data/:/data"
+      - data:/data
     user: "${UID}:${GID}"
+volumes:
+  data:

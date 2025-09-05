@@ -4,14 +4,13 @@ services:
     restart: always
     container_name: adguard
     volumes:
-      - adguard_data:/opt/adguardhome/work
-      - adguard_data:/opt/adguardhome/conf
-
+      - data:/opt/adguardhome/work
+      - data:/opt/adguardhome/conf
     ports:
       - "53:53/tcp"
       - "53:53/udp"
       - "3001:3000/tcp"
     # network_mode: host
-
+    network_mode: bridge
 volumes:
-  adguard_data:
+  data:

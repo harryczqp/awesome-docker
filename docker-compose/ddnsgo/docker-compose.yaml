@@ -6,13 +6,14 @@ services:
     environment:
       - TZ=Asia/Shanghai
     volumes:
-      - ddnsgo_data:/root/
+      - data:/root/
     #监听地址9877 监听秒数600
     command: -l :9876 -f 600
     # ports:
     #   - "9876:9877"
+    # network_mode: bridge
     network_mode: "host"
 
 
 volumes:
-  ddnsgo_data:
+  data:
