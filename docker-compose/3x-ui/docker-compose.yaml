@@ -1,6 +1,6 @@
 services:
   3x-ui:
-    image: ghcr.io/mhsanaei/3x-ui:${IMAGE_TAG:-latest}
+    image: ghcr.io/mhsanaei/3x-ui:latest
     container_name: 3x-ui
     restart: unless-stopped
     network_mode: host
