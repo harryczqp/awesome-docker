@@ -13,9 +13,11 @@ services:
     environment:
       - TZ=Asia/Shanghai
     volumes:
-      - './config/route.list:/config/route.list:ro'
+      - 'data:/config/route.list:ro'
     logging:
         driver: "json-file"
         options:
             max-size: "1m"
     network_mode: host
+volumes:
+  data:

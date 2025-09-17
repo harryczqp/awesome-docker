@@ -9,6 +9,7 @@ services:
     ports:
       - 4567:4567
       - 5344:80
+    network_mode: bridge
     restart: unless-stopped
     environment:
       - TZ=Asia/Shanghai
