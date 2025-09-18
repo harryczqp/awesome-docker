@@ -1,0 +1,16 @@
+version: '3.9'
+services:
+  frpc:
+    image: ghcr.io/fatedier/frpc:v0.64.0
+    container_name: frpc
+    restart: unless-stopped
+    network_mode: host # 或者 bridge，根据你的需求选择
+    volumes:
+      # 将宿主机的 frpc.ini 配置文件映射到容器内部
+      - ./frpc.toml:/etc/frp/frpc.toml
+    command: ["-c", "/etc/frp/frpc.toml"]
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
