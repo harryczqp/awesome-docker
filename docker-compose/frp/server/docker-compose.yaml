@@ -5,7 +5,7 @@ services:
     restart: always
     network_mode: host
     volumes:
-      - ./frps.toml:/etc/frp/frps.toml
+      - /mnt/onedrive/configs/frps.toml:/etc/frp/frps.toml
     labels:
       createdBy: "Apps"
     command: ["-c", "/etc/frp/frps.toml"]
