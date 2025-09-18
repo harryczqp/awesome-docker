@@ -1,0 +1,26 @@
+---
+services:
+  s-ui:
+    image: alireza7/s-ui
+    container_name: s-ui
+    environment:
+      - TZ=Asia/Shanghai
+    hostname: "s-ui"
+    volumes:
+      - "data:/app/db"
+      - "data:/app/cert"
+    tty: true
+    restart: unless-stopped
+    ports:
+      - "2095:2095"
+      - "2096:2096"
+    networks:
+      - s-ui
+    entrypoint: "./entrypoint.sh"
+
+networks:
+  s-ui:
+    driver: bridge
+
+volumes:
+  data:
