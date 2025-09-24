@@ -1,0 +1,20 @@
+version: '3'
+services:
+  message-pusher:
+    image: justsong/message-pusher
+    container_name: message-pusher
+    restart: unless-stopped
+    ports:
+      - 13000:3000
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - data:/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    network_mode: bridge
+volumes:
+  data:
