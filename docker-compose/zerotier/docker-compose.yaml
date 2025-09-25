@@ -14,6 +14,7 @@ services:
       - TZ=Asia/Shanghai
     volumes:
       - 'data:/config/route.list:ro'
+    command: zerotier-cli join ${ZEROTIER_NETWORK_ID}
     logging:
         driver: "json-file"
         options:
