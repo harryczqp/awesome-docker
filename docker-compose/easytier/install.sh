@@ -43,12 +43,8 @@ if [ -z "$ET_IPV4" ]; then
     ET_IPV4="10.144.144.1"
 fi
 
-read -p "请输入 Easytier 网络端口 (默认为 11010): " ET_NETWORK_PORT
-if [ -z "$ET_NETWORK_PORT" ]; then
-    ET_NETWORK_PORT="11010"
-fi
-
-read -p "请输入 Easytier 对等节点 (例如: ip1:port1,ip2:port2, 留空则无): " ET_PEERS
+read -p "请输入 Easytier 网络端口: (例如: 11010)" ET_LISTENERS
+read -p "请输入 Easytier 对等节点 (例如: udp://127.0.0.1:11010 留空则无): " ET_PEERS
 read -p "请输入 Easytier 主机名 (留空则无): " ET_HOSTNAME
 read -p "是否接受 DNS (true/false, 默认为 true): " ET_ACCEPT_DNS
 if [ -z "$ET_ACCEPT_DNS" ]; then
@@ -73,7 +69,7 @@ echo "--- 配置信息预览 ---"
 echo "网络名称: $ET_NETWORK_NAME"
 echo "网络密钥: $ET_NETWORK_SECRET"
 echo "IPv4 地址: $ET_IPV4"
-echo "网络端口: $ET_NETWORK_PORT"
+echo "网络端口: $ET_LISTENERS"
 echo "对等节点: $ET_PEERS"
 echo "主机名: $ET_HOSTNAME"
 echo "接受 DNS: $ET_ACCEPT_DNS"
@@ -89,7 +85,7 @@ echo "# Easytier 环境变量配置" > .env
 [ -n "$ET_NETWORK_NAME" ] && echo "ET_NETWORK_NAME=$ET_NETWORK_NAME" >> .env
 [ -n "$ET_NETWORK_SECRET" ] && echo "ET_NETWORK_SECRET=$ET_NETWORK_SECRET" >> .env
 [ -n "$ET_IPV4" ] && echo "ET_IPV4=$ET_IPV4" >> .env
-[ -n "$ET_NETWORK_PORT" ] && echo "ET_NETWORK_PORT=$ET_NETWORK_PORT" >> .env
+[ -n "$ET_LISTENERS" ] && echo "ET_LISTENERS=$ET_LISTENERS" >> .env
 [ -n "$ET_PEERS" ] && echo "ET_PEERS=$ET_PEERS" >> .env
 [ -n "$ET_HOSTNAME" ] && echo "ET_HOSTNAME=$ET_HOSTNAME" >> .env
 [ -n "$ET_ACCEPT_DNS" ] && echo "ET_ACCEPT_DNS=$ET_ACCEPT_DNS" >> .env
@@ -100,23 +96,6 @@ echo "# Easytier 环境变量配置" > .env
 echo "成功创建 .env 文件。"
 echo ""
 
-# # 将环境变量写入一个新文件，然后通过 docker-compose 加载
-# echo "创建 .env 文件..."
-# cat <<EOF > .env
-# ET_PEERS=$ET_PEERS
-# ET_NETWORK_NAME=$ET_NETWORK_NAME
-# ET_NETWORK_SECRET=$ET_NETWORK_SECRET
-# ET_IPV4=$ET_IPV4
-# ET_NETWORK_PORT=$ET_NETWORK_PORT
-# ET_HOSTNAME=$ET_HOSTNAME
-# ET_ACCEPT_DNS=$ET_ACCEPT_DNS
-# ET_ENABLE_QUIC_PROXY=$ET_ENABLE_QUIC_PROXY
-# ET_PRIVATE_MODE=$ET_PRIVATE_MODE
-# ET_EXTERNAL_NODE=$ET_EXTERNAL_NODE
-# ET_PROXY_NETWORKS=$ET_PROXY_NETWORKS
-# EOF
-# echo "成功创建 .env 文件。"
-# echo ""
 
 # 使用 -f 参数指定你的 docker-compose 文件名
 echo "启动 docker-compose..."
