@@ -20,6 +20,7 @@ services:
     cap_add:
       - NET_ADMIN
       - NET_RAW
+    env_file: ./.env
     environment:
       - TZ=Asia/Shanghai
     devices:
@@ -29,12 +30,6 @@ services:
       # - /etc/machine-id:/etc/machine-id:ro # 映射宿主机机器码
       - data:/root
       - data:/etc/machine-id:ro
-    command: -i ${ET_NETWORK_IP} -l ${ET_NETWORK_PORT} --enable-quic-proxy --private-mode true --network-name ${ET_NETWORK_NAME} --network-secret ${ET_NETWORK_SECRET}
+    command: -l ${ET_NETWORK_PORT}
 volumes:
   data:
-
-
-# export ET_NETWORK_IP=10.188.188.1
-# export ET_NETWORK_PORT=21010
-# export ET_NETWORK_NAME=ggit
-# export ET_NETWORK_SECRET=2wsx@WSX
