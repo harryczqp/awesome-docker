@@ -27,9 +27,14 @@ services:
     volumes:
       # - /etc/easytier:/root
       # - /etc/machine-id:/etc/machine-id:ro # 映射宿主机机器码
-      - easytier_data:/root
-      - easytier_data:/etc/machine-id:ro
-#  --private-mode true --network-name my-network --network-secret my-secret
-    command: -d --network-name <用户> --network-secret <密码> -p tcp://public.easytier.cn:11010
+      - data:/root
+      - data:/etc/machine-id:ro
+    command: -i ${ET_NETWORK_IP} -l ${ET_NETWORK_PORT} --enable-quic-proxy --private-mode true --network-name ${ET_NETWORK_NAME} --network-secret ${ET_NETWORK_SECRET}
 volumes:
-  easytier_data:
+  data:
+
+
+# export ET_NETWORK_IP=10.188.188.1
+# export ET_NETWORK_PORT=21010
+# export ET_NETWORK_NAME=ggit
+# export ET_NETWORK_SECRET=2wsx@WSX
