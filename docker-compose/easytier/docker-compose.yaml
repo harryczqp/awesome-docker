@@ -30,6 +30,5 @@ services:
       # - /etc/machine-id:/etc/machine-id:ro # 映射宿主机机器码
       - data:/root
       - data:/etc/machine-id:ro
-    command: -l ${ET_NETWORK_PORT}
 volumes:
   data:
