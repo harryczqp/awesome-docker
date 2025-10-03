@@ -10,6 +10,7 @@ services:
       - "data:/app/RenewX/appdata"
     ports:
       - "1066:1066/tcp"
+    network_mode: bridge
 
 volumes:
   data:
