@@ -3,15 +3,15 @@ services:
     image: 'docker.io/jc21/nginx-proxy-manager:latest'
     restart: unless-stopped
     container_name: npm
-    ports:
-      - '80:80'
-      - '81:81'
-      - '443:443'
+    # ports:
+    #   - '80:80'
+    #   - '81:81'
+    #   - '443:443'
     volumes:
       - data:/data
       - data:/etc/letsencrypt
     environment:
       - TZ=Asia/Shanghai
-    network_mode: bridge
+    network_mode: host
 volumes:
   data:
