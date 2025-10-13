@@ -2,7 +2,7 @@ services:
   frps:
     image: ghcr.io/fatedier/frps:v0.64.0
     container_name: frps
-    restart: always
+    restart: unless-stopped
     network_mode: host
     volumes:
       - /mnt/onedrive/configs/frps.toml:/etc/frp/frps.toml

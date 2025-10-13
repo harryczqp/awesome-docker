@@ -3,7 +3,7 @@ version: '3.3'
 services:
   bitwarden:
     image: bitwarden/server
-    restart: always
+    restart: unless-stopped
     container_name: bitwarden
     environment:
       - TZ=Asia/Shanghai

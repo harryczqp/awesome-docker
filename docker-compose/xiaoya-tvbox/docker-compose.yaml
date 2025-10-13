@@ -4,7 +4,7 @@ services:
   xiaoya-tvbox:
     image: haroldli/xiaoya-tvbox:latest
     container_name: xiaoya-tvbox
-    restart: always
+    restart: unless-stopped
     platform: ${PLATFORM:-linux/amd64}  # 自动检测平台
     ports:
       - "${PORT1:-4567}:4567"  # 管理界面端口

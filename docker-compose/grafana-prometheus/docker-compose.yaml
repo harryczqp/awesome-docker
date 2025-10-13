@@ -13,7 +13,7 @@ services:
             createdBy: Apps
         ports:
             - 9090:9090
-        restart: always
+        restart: unless-stopped
         volumes:
             - prometheus:/etc/prometheus/
             - prometheus:/prometheus
@@ -26,7 +26,7 @@ services:
         image: grafana/grafana-oss
         ports:
             - 9091:3000
-        restart: always
+        restart: unless-stopped
         user: "0"
         volumes:
             - grafana:/var/lib/grafana

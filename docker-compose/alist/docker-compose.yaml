@@ -1,7 +1,7 @@
 services:
   alist:
     image: xhofe/alist:${IMAGE_TAG:-latest}
-    restart: always
+    restart: unless-stopped
     container_name: alist
     logging:
         driver: "json-file"

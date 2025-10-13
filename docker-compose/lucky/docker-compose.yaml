@@ -1,7 +1,7 @@
 services:
   lucky:
     image: gdy666/lucky
-    restart: always
+    restart: unless-stopped
     container_name: lucky
     environment:
       - TZ=Asia/Shanghai

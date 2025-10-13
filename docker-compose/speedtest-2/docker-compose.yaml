@@ -3,7 +3,7 @@ version: '3.3'
 services:
   alist:
     image: wikihostinc/looking-glass-server:latest
-    restart: always
+    restart: unless-stopped
     container_name: als
     logging:
         driver: "json-file"

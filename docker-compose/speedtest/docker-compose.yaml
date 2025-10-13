@@ -2,7 +2,7 @@ services:
   speedtest:
     container_name: speedtest
     image: ghcr.io/librespeed/speedtest:latest
-    restart: always
+    restart: unless-stopped
     environment:
       MODE: standalone
       TITLE: "Ggit Speedtest"

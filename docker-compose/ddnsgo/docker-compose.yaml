@@ -1,7 +1,7 @@
 services:
   ddns-go:
     image: jeessy/ddns-go:${IMAGE_TAG:-latest}
-    restart: always
+    restart: unless-stopped
     container_name: ddns-go
     environment:
       - TZ=Asia/Shanghai
