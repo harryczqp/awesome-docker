@@ -12,9 +12,10 @@ services:
       - PASSWORD=123456
     volumes:
       # - "./workdir:/home/coder/workdir"
-      - "$PWD/../:/docker-compose-file"
-      - "$PWD/../../:/server-file"
+      # - "$PWD/../:/docker-compose-file"
+      # - "$PWD/../../:/server-file"
       # - "$PWD/workdir/code-server/:/root/.config/code-server/config.yaml"
+      - "~/repos:/repos"
     logging:
         driver: "json-file"
         options:
