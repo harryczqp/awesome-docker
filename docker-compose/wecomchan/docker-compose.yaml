@@ -3,7 +3,7 @@ version: '3'
 services:
   go-wecomchan:
     image: docker.io/aozakiaoko/go-wecomchan:latest
-    env_file: /mnt/onedrive/configs/wecomchan-setting.env
+    env_file: /etc/configs/wecomchan/wecomchan-setting.env
     ports:
       - 8433:8080
     networks:
@@ -13,7 +13,7 @@ services:
 
   redis:
     image: docker.io/bitnami/redis:6.2
-    env_file: /mnt/onedrive/configs/wecomchan-setting.env
+    env_file: /etc/configs/wecomchan/wecomchan-setting.env
     networks:
       - go-wecomchan
     volumes:

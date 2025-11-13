@@ -60,6 +60,7 @@ def backup_volumes():
     print("开始备份正在使用的 Docker 卷...")
     
     volume_base_path = "/var/lib/docker/volumes"
+    # volume_base_path = "/var/lib/containers/storage/volumes"
     backed_up_count = 0
     for volume in volumes:
         containers = get_containers_for_volume(volume)

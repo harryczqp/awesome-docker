@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:17.6-alpine
+    container_name: postgres-db
+    restart: unless-stopped
+    network_mode: "host"
+    env_file:
+      - /etc/configs/postgres/.env
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      # Podman-compose 会在本地创建并管理这个命名卷，实现持久化
+      - data:/var/lib/postgresql/data
+    # ports:
+    #   # 暴露给宿主机，方便测试连接
+    #   - "${DB_PORT}:5432"
+
+volumes:
+  data:
+    driver: local

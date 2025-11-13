@@ -20,7 +20,7 @@ services:
     cap_add:
       - NET_ADMIN
       - NET_RAW
-    env_file: ./.env
+    env_file: /etc/configs/easytier/.env
     environment:
       - TZ=Asia/Shanghai
     devices:

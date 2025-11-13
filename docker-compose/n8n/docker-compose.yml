@@ -11,7 +11,7 @@ services:
     network_mode: "host"
     # 自动从 .env 文件加载环境变量
     env_file:
-      - .env
+      - /etc/configs/n8n/.env
 
     # n8n 的本地数据持久化 (例如: 凭证文件、会话信息)
     volumes:
