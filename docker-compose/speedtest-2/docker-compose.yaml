@@ -18,4 +18,9 @@ services:
       - UTILITIES_IPERF3_PORT_MAX=8402
       - UTILITIES_IPERF3_PORT_MIN=8402
     # network_mode: host
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.als-http.rule=Host(`speedtest.cszy.ggit.cc`)"
+      - "traefik.http.routers.als-http.entrypoints=web"
+      - "traefik.http.services.als-http.loadbalancer.server.port=80"
 
