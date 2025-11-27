@@ -11,7 +11,6 @@ services:
       - "data:/app/cert"
     tty: true
     restart: unless-stopped
-    network_mode: host
     # ports:
     #   - "2095:2095"
     #   - "2096:2096"
@@ -21,6 +20,11 @@ services:
         driver: "json-file"
         options:
             max-size: "1m"
-
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    devices:
+      - /dev/net/tun:/dev/net/tun
 volumes:
   data:
