@@ -2,28 +2,32 @@ services:
   moontv-core:
     image: ghcr.io/moontechlab/lunatv:latest
     container_name: moontv-core
-    restart: on-failure
-    ports:
-      - '3000:3000'
+    restart: unless-stopped
+    # ports:
+    #   - '3000:3000'
     environment:
       - USERNAME=admin
       - PASSWORD=admin
       - NEXT_PUBLIC_STORAGE_TYPE=kvrocks
-      - KVROCKS_URL=redis://moontv-kvrocks:6666
-    networks:
-      - moontv-network
+      - KVROCKS_URL=redis://192.168.100.178:6666
+    # networks:
+    #   - moontv-network
+    network_mode: host
     depends_on:
       - moontv-kvrocks
   moontv-kvrocks:
     image: apache/kvrocks
     container_name: moontv-kvrocks
     restart: unless-stopped
+    # ports:
+    #   - '6666:6666'
     volumes:
       - kvrocks-data:/var/lib/kvrocks
-    networks:
-      - moontv-network
-networks:
-  moontv-network:
-    driver: bridge
+    # networks:
+    #   - moontv-network
+    network_mode: host
+# networks:
+#   moontv-network:
+#     driver: bridge
 volumes:
   kvrocks-data:
