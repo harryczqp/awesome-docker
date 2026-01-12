@@ -20,7 +20,7 @@ services:
     # network_mode: host
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.als-http.rule=Host(`speedtest.cszy.ggit.cc`)"
+      - "traefik.http.routers.als-http.rule=Host(`speedtest.cszy.et.net`)"
       - "traefik.http.routers.als-http.entrypoints=web"
       - "traefik.http.services.als-http.loadbalancer.server.port=80"
 
