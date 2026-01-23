@@ -12,3 +12,8 @@ services:
       - /dev/net/tun
     environment:
       - TZ=Asia/Shanghai
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

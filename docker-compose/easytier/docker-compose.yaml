@@ -30,5 +30,10 @@ services:
       # - /etc/machine-id:/etc/machine-id:ro # 映射宿主机机器码
       - data:/root
       - data:/etc/machine-id:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 volumes:
   data:
