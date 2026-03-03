@@ -11,6 +11,7 @@ services:
         image: prom/prometheus:v3.2.1
         labels:
             createdBy: Apps
+        network_mode: bridge
         ports:
             - 9090:9090
         restart: unless-stopped
@@ -21,9 +22,13 @@ services:
             # - /etc/timezone:/etc/timezone:ro
         environment:
             - TZ=Asia/Shanghai
+        extra_hosts:
+            - "local-server:host-gateway" # 这里改成了 local-server 
+            # sudo ufw allow from 172.17.0.0/16 to any port 9100           
     grafana:
         container_name: grafana
         image: grafana/grafana-oss
+        network_mode: bridge
         ports:
             - 9091:3000
         restart: unless-stopped
