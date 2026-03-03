@@ -1,0 +1,10 @@
+services:
+  opencode:
+    image: ghcr.io/anomalyco/opencode
+    restart: unless-stopped
+    container_name: opencode
+    volumes:
+      - ~/repos:/repos
+    environment:
+      - TZ=Asia/Shanghai
+    network_mode: "host"
