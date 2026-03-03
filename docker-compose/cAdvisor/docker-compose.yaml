@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    network_mode: bridge
+    ports:
+      - "9101:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+    # 如果你的系统是较新的 Ubuntu (如 22.04+)，可能需要禁用 cgroup 映射以避免报错
+    # command: ["--allow_dynamic_housekeeping=true"]
+    logging:
+        driver: "json-file"
+        options:
+            max-size: "1m"    
