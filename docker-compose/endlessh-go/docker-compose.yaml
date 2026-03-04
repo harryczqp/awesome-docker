@@ -6,7 +6,7 @@ services:
     ports:
       - "22:2222"    # 将物理机 22 端口诱饵流量转发到容器
       - "9102:2112"  # Prometheus 指标抓取端口
-    command: ["-logtostderr", "-v=1"]
+    command: ["-logtostderr", "-v=1", "-enable_prometheus", "-geoip_supplier", "ip-api"]
     logging:
         driver: "json-file"
         options:
