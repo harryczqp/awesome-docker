@@ -1,0 +1,14 @@
+services:
+  endlessh:
+    image: shizunge/endlessh-go
+    container_name: endlessh
+    restart: unless-stopped
+    ports:
+      - "22:2222"    # 将物理机 22 端口诱饵流量转发到容器
+      - "9102:2112"  # Prometheus 指标抓取端口
+    command: ["-logtostderr", "-v=1"]
+    logging:
+        driver: "json-file"
+        options:
+            max-size: "1m"    
+                
