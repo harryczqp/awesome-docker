@@ -11,7 +11,6 @@ services:
         image: prom/prometheus:v3.2.1
         labels:
             createdBy: Apps
-        network_mode: bridge
         ports:
             - 9090:9090
         restart: unless-stopped
@@ -28,7 +27,6 @@ services:
     grafana:
         container_name: grafana
         image: grafana/grafana-oss
-        network_mode: bridge
         ports:
             - 9091:3000
         restart: unless-stopped
