@@ -5,6 +5,7 @@ services:
     image: justlikemaki/aiclient-2-api:latest
     container_name: aiclient2api
     restart: unless-stopped
+    network_mode: bridge
     ports:
       - "3001:3000"
       #Gemini: 8085, Antigravity: 8086, iFlow: 8087, Codex: 1455, Kiro: 19876-19880
@@ -12,7 +13,7 @@ services:
       - "1455:1455"
       - "19876-19880:19876-19880"
     volumes:
-      - ./configs:/app/configs
+      - data:/app/configs
     environment:
       - ARGS=
     healthcheck:
@@ -21,3 +22,9 @@ services:
       timeout: 3s
       start_period: 5s
       retries: 3
+    logging:
+        driver: "json-file"
+        options:
+            max-size: "1m"   
+volumes:
+  data:
