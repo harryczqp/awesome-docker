@@ -1,0 +1,27 @@
+services:
+  # ===========================================================================
+  # Sub2API Application
+  # ===========================================================================
+  sub2api:
+    image: weishaw/sub2api:latest
+    container_name: sub2api
+    restart: unless-stopped
+    ulimits:
+      nofile:
+        soft: 100000
+        hard: 100000
+    # 这里修改为了 HOST_PORT 以避免与容器内部的 SERVER_PORT=8080 冲突
+    ports:
+      - "${BIND_HOST:-0.0.0.0}:${HOST_PORT:-18080}:8080"
+    volumes:
+      - data:/app/data
+    env_file: .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  data:
