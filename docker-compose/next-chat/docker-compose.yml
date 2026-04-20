@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  chatgpt-next-web:
+    image: m.daocloud.io/docker.io/yidadaa/chatgpt-next-web
+    container_name: chatgpt-next-web
+    ports:
+      - "3044:3000"
+    environment:
+      - OPENAI_API_KEY=sk-gvXdAm7EIOE6w88ed
+      - BASE_URL=http://10.8.8.1:8317
+      - ENABLE_MCP=true
+    restart: unless-stopped
