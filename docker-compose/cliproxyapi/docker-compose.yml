@@ -1,6 +1,11 @@
 services:
   cli-proxy-api:
     image: eceasy/cli-proxy-api:latest
+    deploy:
+      resources:
+        limits:
+          cpus: '0.90'       # 限制最多使用 90% 的 CPU
+          memory: 512M       # 限制最多使用 512MB 内存
     pull_policy: always
     container_name: cli-proxy-api
     environment:
