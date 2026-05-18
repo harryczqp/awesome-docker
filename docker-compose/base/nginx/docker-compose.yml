@@ -52,14 +52,14 @@ services:
 
     volumes:
       # 主配置与站点配置（只读挂载，防止容器内篡改）
-      - /etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - /etc/nginx/conf.d:/etc/nginx/conf.d:ro
+      - /etc/configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/configs/nginx/conf.d:/etc/nginx/conf.d:ro
 
       # 静态资源（只读）
-      - /etc/nginx/html:/usr/share/nginx/html:ro
+      - /etc/configs/nginx/html:/usr/share/nginx/html:ro
 
       # SSL 证书（只读）
-      - /etc/nginx/ssl:/etc/nginx/ssl:ro
+      - /etc/configs/nginx/ssl:/etc/nginx/ssl:ro
 
       # 日志持久化到宿主机，便于审计异常 worker crash（CVE-2026-42945 利用迹象）
       - /var/log/nginx:/var/log/nginx
