@@ -1,48 +1,36 @@
+# mkdir -p /var/log/nginx /etc/configs/nginx/{conf.d,html,ssl}
+# chown -R 101:101 /var/log/nginx
 services:
   nginx:
-    # 使用已修复 CVE-2026-42945 的正式版本，避免 latest 标签导致缓存旧镜像
     image: nginx:1.31.0-alpine
     container_name: nginx-gateway
     restart: unless-stopped
     network_mode: host
 
-    # 资源硬限制，防止异常流量导致宿主机资源耗尽
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"
-          memory: 512M
-        reservations:
-          cpus: "0.25"
-          memory: 128M
+    # 单机资源限制（deploy.resources 在 swarm 外无效）
+    mem_limit: 512M
+    mem_reservation: 128M
+    cpus: "1.0"
 
-    # 健康检查：验证 worker 进程是否存活且端口可响应
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
 
     volumes:
-      # 主配置与站点配置（只读挂载，防止容器内篡改）
       - /etc/configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - /etc/configs/nginx/conf.d:/etc/nginx/conf.d:ro
-      # 静态资源（只读）
       - /etc/configs/nginx/html:/usr/share/nginx/html:ro
-      # SSL 证书（只读）
       - /etc/configs/nginx/ssl:/etc/nginx/ssl:ro
-      # 日志持久化到宿主机，便于审计异常 worker crash（CVE-2026-42945 利用迹象）
       - /var/log/nginx:/var/log/nginx
 
-    # 日志驱动配置，便于集中采集
     logging:
       driver: "json-file"
       options:
         max-size: "50m"
         max-file: "5"
-        labels: "service_name,environment"
-        env: "OS_VERSION"
 
     environment:
       - TZ=Asia/Shanghai
