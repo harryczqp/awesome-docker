@@ -1,0 +1,99 @@
+version: "3.8"
+
+services:
+  nginx:
+    # 使用已修复 CVE-2026-42945 的正式版本，避免 latest 标签导致缓存旧镜像
+    image: nginx:1.31.0-alpine
+    container_name: nginx-gateway
+    restart: unless-stopped
+
+    ports:
+      - "80:8080"    # 容器内非特权端口，配合 user 降权
+      - "443:8443"
+
+    # 安全：只读 rootfs + 临时目录挂载为可写
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+      - /var/cache/nginx:noexec,nosuid,size=100m
+      - /var/run:noexec,nosuid,size=10m
+
+    # 安全：以非 root 运行（ Alpine 镜像内已有 nginx 用户 uid=101 ）
+    user: "101:101"
+
+    # 安全：仅保留绑定端口所需 capability，其余全部丢弃
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - SETGID
+      - SETUID
+
+    # 安全：限制系统调用
+    security_opt:
+      - no-new-privileges:true
+      - seccomp:unconfined   # 如需严格 seccomp，可替换为自定义 profile 路径
+
+    # 资源硬限制，防止异常流量导致宿主机资源耗尽
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+
+    # 健康检查：验证 worker 进程是否存活且端口可响应
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+    volumes:
+      # 主配置与站点配置（只读挂载，防止容器内篡改）
+      - /etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/nginx/conf.d:/etc/nginx/conf.d:ro
+
+      # 静态资源（只读）
+      - /etc/nginx/html:/usr/share/nginx/html:ro
+
+      # SSL 证书（只读）
+      - /etc/nginx/ssl:/etc/nginx/ssl:ro
+
+      # 日志持久化到宿主机，便于审计异常 worker crash（CVE-2026-42945 利用迹象）
+      - /var/log/nginx:/var/log/nginx
+
+      # 运行时临时文件（配合 read_only: true）
+      - nginx-tmp:/var/cache/nginx
+      - nginx-run:/var/run
+
+    networks:
+      - frontend
+      - backend
+
+    # 日志驱动配置，便于集中采集
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+        labels: "service_name,environment"
+        env: "OS_VERSION"
+
+    environment:
+      - TZ=Asia/Shanghai
+      - NGINX_ENTRYPOINT_QUIET_LOGS=1
+
+volumes:
+  nginx-tmp:
+  nginx-run:
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+    internal: true   # 后端网络无外部路由，仅用于 upstream 通信

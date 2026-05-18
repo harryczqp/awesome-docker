@@ -1,0 +1,57 @@
+services:
+  moontv-core:
+    image: ghcr.io/mtvpls/moontvplus:latest
+    # image: ghcr.1ms.run/mtvpls/moontvplus:latest
+    container_name: moontv-core2
+    restart: unless-stopped
+    ports:
+      - '3001:3000'
+    environment:
+      - USERNAME=admin
+      - PASSWORD=admin
+      - NEXT_PUBLIC_STORAGE_TYPE=kvrocks
+      - KVROCKS_URL=redis://moontv-kvrocks:6666
+    networks:
+      - moontv-network
+    depends_on:
+      - moontv-kvrocks
+  moontv-kvrocks:
+    image: apache/kvrocks
+    # image: docker.1ms.run/apache/kvrocks
+    container_name: moontv-kvrocks2
+    restart: unless-stopped
+    volumes:
+      - kvrocks-data:/var/lib/kvrocks/data
+    networks:
+      - moontv-network
+  lx-sync-server:
+    image: xcq0607/lxserver:latest
+    # image: docker.1ms.run/xcq0607/lxserver:latest
+    container_name: lx-sync-server
+    restart: unless-stopped
+    ports:
+      - "9527:9527"
+    volumes:
+      - lx-sync-server-data:/server/data
+      - lx-sync-server-logs:/server/logs
+      - lx-sync-server-cache:/server/cache
+      - lx-sync-server-music:/server/music
+    environment:
+      - NODE_ENV=production
+      # - FRONTEND_PASSWORD=123456
+      # - ENABLE_WEBPLAYER_AUTH=true
+      # - WEBPLAYER_PASSWORD=yourpassword
+      # - ADMIN_PATH=
+      # - PLAYER_PATH=/music
+    networks:
+      - moontv-network
+
+networks:
+  moontv-network:
+    driver: bridge
+volumes:
+  kvrocks-data:
+  lx-sync-server-data:
+  lx-sync-server-logs:
+  lx-sync-server-cache:
+  lx-sync-server-music:
