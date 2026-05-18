@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   nginx:
     # 使用已修复 CVE-2026-42945 的正式版本，避免 latest 标签导致缓存旧镜像
@@ -66,10 +64,6 @@ services:
       # 日志持久化到宿主机，便于审计异常 worker crash（CVE-2026-42945 利用迹象）
       - /var/log/nginx:/var/log/nginx
 
-      # 运行时临时文件（配合 read_only: true）
-      - nginx-tmp:/var/cache/nginx
-      - nginx-run:/var/run
-
     networks:
       - frontend
       - backend
@@ -86,11 +80,6 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - NGINX_ENTRYPOINT_QUIET_LOGS=1
-
-volumes:
-  nginx-tmp:
-  nginx-run:
-
 networks:
   frontend:
     driver: bridge
