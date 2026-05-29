@@ -1,0 +1,27 @@
+services:
+  openresty:
+    image: openresty/openresty:alpine
+    container_name: openresty
+    restart: unless-stopped
+    network_mode: host
+
+    mem_limit: 512M
+    mem_reservation: 128M
+    cpus: "1.0"
+
+    volumes:
+      - ./nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf:ro
+      - /etc/configs/nginx/conf.d:/etc/nginx/conf.d:ro
+      - /etc/configs/nginx/html:/usr/share/nginx/html:ro
+      - /etc/configs/nginx/ssl:/etc/nginx/ssl:ro
+      - /etc/configs/nginx/lua:/etc/nginx/lua:ro
+      - /var/log/nginx:/var/log/nginx
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+    environment:
+      - TZ=Asia/Shanghai
