@@ -1,0 +1,23 @@
+services:
+  yudao:
+    image: crpi-c022qgsomszpe1m9.cn-shanghai.personal.cr.aliyuncs.com/tuanmiao/yudao-server:latest
+    container_name: yudao
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ:-Asia/Shanghai}
+    network_mode: host
+    # network_mode: bridge
+    # ports:
+    #   - "48080:48080"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "48080"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    logging:
+        driver: "json-file"
+        options:
+            max-size: "100m"
+volumes:
+  data:

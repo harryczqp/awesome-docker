@@ -1,15 +1,16 @@
 services:
   renewx:
     image: harryczqp/renewx
-    restart: always
+    restart: unless-stopped
     container_name: renewx
     environment:
       - TZ=Asia/Shanghai
     volumes:
-      - "renewx_data:/app/RenewX/Deploy"
-      - "renewx_data:/app/RenewX/appdata"
+      - "data:/app/RenewX/Deploy"
+      - "data:/app/RenewX/appdata"
     ports:
       - "1066:1066/tcp"
+    network_mode: bridge
 
 volumes:
-  renewx_data:
+  data:

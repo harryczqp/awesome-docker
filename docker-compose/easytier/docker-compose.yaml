@@ -20,6 +20,7 @@ services:
     cap_add:
       - NET_ADMIN
       - NET_RAW
+    env_file: /etc/configs/easytier/.env
     environment:
       - TZ=Asia/Shanghai
     devices:
@@ -27,9 +28,12 @@ services:
     volumes:
       # - /etc/easytier:/root
       # - /etc/machine-id:/etc/machine-id:ro # 映射宿主机机器码
-      - easytier_data:/root
-      - easytier_data:/etc/machine-id:ro
-#  --private-mode true --network-name my-network --network-secret my-secret
-    command: -d --network-name <用户> --network-secret <密码> -p tcp://public.easytier.cn:11010
+      - data:/root
+      - data:/etc/machine-id:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 volumes:
-  easytier_data:
+  data:

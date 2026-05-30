@@ -1,0 +1,10 @@
+services:
+  mi-air:
+    image: harryczqp/miair:latest
+    container_name: miair
+    restart: unless-stopped
+    logging:
+        driver: "json-file"
+        options:
+            max-size: "1m"
+    network_mode: host

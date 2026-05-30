@@ -3,7 +3,7 @@ version: '3.3'
 services:
   alist:
     image: wikihostinc/looking-glass-server:latest
-    restart: always
+    restart: unless-stopped
     container_name: als
     logging:
         driver: "json-file"
@@ -12,9 +12,15 @@ services:
     ports:
       - "8401:80/tcp"
       - "8402:8402/tcp"
+    network_mode: bridge
     environment:
       - TZ=Asia/Shanghai
       - UTILITIES_IPERF3_PORT_MAX=8402
       - UTILITIES_IPERF3_PORT_MIN=8402
     # network_mode: host
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.als-http.rule=Host(`speedtest.cszy.et.net`)"
+      - "traefik.http.routers.als-http.entrypoints=web"
+      - "traefik.http.services.als-http.loadbalancer.server.port=80"
 

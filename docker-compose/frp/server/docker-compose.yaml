@@ -1,0 +1,15 @@
+services:
+  frps:
+    image: ghcr.io/fatedier/frps:v0.64.0
+    container_name: frps
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /etc/configs/frp/frps.toml:/etc/frp/frps.toml
+    labels:
+      createdBy: "Apps"
+    command: ["-c", "/etc/frp/frps.toml"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"

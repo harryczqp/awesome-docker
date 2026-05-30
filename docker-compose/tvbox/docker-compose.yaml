@@ -1,0 +1,18 @@
+version: "3.2"
+
+services:
+  tvbox:
+    image: "haroldli/xiaoya-tvbox:native"
+    container_name: tvbox
+    volumes:
+      - data:/data
+    ports:
+      - 4567:4567
+      - 5344:80
+    network_mode: bridge
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+      - ALIST_PORT=5344
+volumes:
+  data:

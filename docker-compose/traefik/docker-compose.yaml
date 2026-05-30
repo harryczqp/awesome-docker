@@ -1,0 +1,22 @@
+# docker-compose.yml
+services:
+  traefik:
+    image: traefik:v3.6
+    container_name: "traefik"
+    network_mode: bridge
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/log/traefik:/var/log/traefik   # 挂载日志目录
+      # 挂载 Docker Socket，以便 Traefik 能自动发现其他容器
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      # 挂载静态配置文件
+      - "/etc/configs/traefik/traefik.yml:/etc/traefik/traefik.yml:ro"
+      # # 挂载 SSL 证书存储文件
+      - "./acme.json:/etc/traefik/acme.json"
+      # # (可选) 挂载仪表盘的密码文件
+      - "/etc/configs/traefik/.htpasswd:/etc/traefik/.htpasswd:ro"
+    restart: unless-stopped
+    environment:
+      - "TZ=Asia/Shanghai"

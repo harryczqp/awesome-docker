@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  cadvisor:
+    image: m.daocloud.io/gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    restart: unless-stopped
+    privileged: true
+    network_mode: bridge
+    ports:
+      - "9101:9101"
+    # # 开启 host 网络模式，直接使用宿主机网络栈
+    # network_mode: host
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+    # 如果你的系统是较新的 Ubuntu (如 22.04+)，可能需要禁用 cgroup 映射以避免报错
+    # command: ["--allow_dynamic_housekeeping=true"]
+    command: 
+      - "--port=9101"
+      - "--housekeeping_interval=10s" # 采样间隔，默认1s太快了，10s比较省资源
+      # - "--docker_only=true"          # 只监控容器，减少干扰指标    
+    logging:
+        driver: "json-file"
+        options:
+            max-size: "1m"    
+            

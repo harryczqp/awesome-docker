@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  go-wecomchan:
+    image: docker.io/aozakiaoko/go-wecomchan:latest
+    env_file: /etc/configs/wecomchan/wecomchan-setting.env
+    ports:
+      - 8433:8080
+    networks:
+      - go-wecomchan
+    depends_on:
+      - redis
+
+  redis:
+    image: docker.io/bitnami/redis:6.2
+    env_file: /etc/configs/wecomchan/wecomchan-setting.env
+    networks:
+      - go-wecomchan
+    volumes:
+      - 'redis_data:/bitnami/redis/data'
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  go-wecomchan:

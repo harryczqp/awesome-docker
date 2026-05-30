@@ -5,15 +5,22 @@ services:
             - --storage.tsdb.path=/prometheus
             - --web.console.libraries=/etc/prometheus/console_libraries
             - --web.console.templates=/etc/prometheus/consoles
-            - --storage.tsdb.retention.time=200h
+            # 1. 设置保留时间（根据需要修改，如 15d）
+            - --storage.tsdb.retention.time=200h 
+            # # 2. 新增：设置最大磁盘占用（例如 20GB），到达后旧数据自动清理
+            # - --storage.tsdb.retention.size=20GB
+            # 3. 开启管理 API 供手动清理使用
             - --web.enable-admin-api
+            # 4. 允许通过 Web 界面热加载配置 (可选)
+            - --web.enable-lifecycle
         container_name: prometheus
         image: prom/prometheus:v3.2.1
         labels:
             createdBy: Apps
+        network_mode: bridge
         ports:
             - 9090:9090
-        restart: always
+        restart: unless-stopped
         volumes:
             - prometheus:/etc/prometheus/
             - prometheus:/prometheus
@@ -21,18 +28,24 @@ services:
             # - /etc/timezone:/etc/timezone:ro
         environment:
             - TZ=Asia/Shanghai
+        extra_hosts:
+            - "local-server:host-gateway" # 这里改成了 local-server 
+            # sudo ufw allow from 172.17.0.0/16 to any port 9100           
     grafana:
         container_name: grafana
         image: grafana/grafana-oss
+        network_mode: bridge
         ports:
             - 9091:3000
-        restart: always
+        restart: unless-stopped
         user: "0"
         volumes:
             - grafana:/var/lib/grafana
         environment:
             - TZ=Asia/Shanghai
-
+        extra_hosts:
+            - "local-server:host-gateway" # 这里改成了 local-server 
+            # sudo ufw allow from 172.17.0.0/16 to any port 9090
 volumes:
     prometheus:
     grafana:

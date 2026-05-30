@@ -11,4 +11,4 @@ services:
       # - /mnt/sata1-1:/os # 硬盘挂载点（根据自己需求修改）
     ports:
       - 3002:3002
-    restart: always
+    restart: unless-stopped

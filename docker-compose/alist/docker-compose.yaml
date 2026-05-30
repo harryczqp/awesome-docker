@@ -1,17 +1,17 @@
 services:
   alist:
     image: xhofe/alist:${IMAGE_TAG:-latest}
-    restart: always
+    restart: unless-stopped
     container_name: alist
     logging:
         driver: "json-file"
         options:
             max-size: "1m"
     volumes:
-      - alist_data:/opt/alist/data
+      - data:/opt/alist/data
     ports:
       - "5244:5244/tcp"
     # network_mode: host
-    
+    network_mode: bridge 
 volumes:
-  alist_data:
+  data:

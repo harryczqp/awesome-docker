@@ -1,0 +1,30 @@
+---
+services:
+  s-ui:
+    image: alireza7/s-ui
+    container_name: s-ui
+    environment:
+      - TZ=Asia/Shanghai
+    hostname: "s-ui"
+    volumes:
+      - "data:/app/db"
+      - "data:/app/cert"
+    tty: true
+    restart: unless-stopped
+    # ports:
+    #   - "2095:2095"
+    #   - "2096:2096"
+    # network_mode: bridge
+    entrypoint: "./entrypoint.sh"
+    logging:
+        driver: "json-file"
+        options:
+            max-size: "1m"
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    devices:
+      - /dev/net/tun:/dev/net/tun
+volumes:
+  data:

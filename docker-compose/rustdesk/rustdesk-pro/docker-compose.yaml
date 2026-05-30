@@ -1,0 +1,15 @@
+services:
+  rustdesk-api-server-pro:
+    container_name: rustdesk-api-server-pro
+    image: ghcr.io/lantongxue/rustdesk-api-server-pro:latest
+    environment:
+      - "ADMIN_USER=admin"
+      - "ADMIN_PASS=admin"
+      - "TZ=Asia/Shanghai"
+    volumes:
+      - ./server.yaml:/app/server.yaml
+    # network_mode: host
+    ports:
+      - "12345:8080"
+    network_mode: bridge
+    restart: unless-stopped

@@ -6,7 +6,7 @@ services:
       - TZ=Asia/Shanghai
     command: hbbs
     volumes:
-      - rustdesk_data:/root
+      - data:/root
     network_mode: "host"
 
     depends_on:
@@ -20,9 +20,16 @@ services:
       - TZ=Asia/Shanghai
     command: hbbr
     volumes:
-      - rustdesk_data:/root
+      - data:/root
     network_mode: "host"
     restart: unless-stopped
 
 volumes:
-  rustdesk_data:
+  data:
+
+
+# # 添加 TCP 端口范围 21115 到 21119
+# sudo ufw allow 21115:21119/tcp comment 'RustDesk TCP Ports'
+
+# # 添加 UDP 端口 21116
+# sudo ufw allow 21116/udp comment 'RustDesk UDP Port'
