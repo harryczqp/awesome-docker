@@ -24,7 +24,7 @@ services:
       - /etc/configs/cli-proxy-api/config.yaml:/CLIProxyAPI/config.yaml
       - /etc/configs/cli-proxy-api/auths:/root/.cli-proxy-api
       - /etc/configs/cli-proxy-api/logs:/CLIProxyAPI/logs
-    restart: unless-stopped
+    restart: always
     logging:
         driver: "json-file"
         options:
@@ -33,7 +33,7 @@ services:
   cpa-usage-keeper:
     image: ghcr.io/willxup/cpa-usage-keeper:latest
     container_name: cpa-usage-keeper
-    restart: unless-stopped
+    restart: always
     depends_on:
       - cli-proxy-api
     ports:

@@ -1,0 +1,81 @@
+name: firecrawl
+
+# Firecrawl - only api + playwright
+# External services (host network):
+#   Redis:    host.containers.internal:6379
+#   Postgres: host.containers.internal:5432 (user: admin, db: firecrawl)
+#   RabbitMQ: host.containers.internal:5672 (user: admin)
+
+services:
+  api:
+    image: ghcr.io/firecrawl/firecrawl:latest
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      HOST: "0.0.0.0"
+      PORT: "3002"
+      EXTRACT_WORKER_PORT: "3004"
+      WORKER_PORT: "3005"
+      REDIS_URL: "redis://host.containers.internal:6379"
+      REDIS_RATE_LIMIT_URL: "redis://host.containers.internal:6379"
+      PLAYWRIGHT_MICROSERVICE_URL: "http://playwright-service:3000/scrape"
+      POSTGRES_HOST: "host.containers.internal"
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: "firecrawl"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "admin"
+      NUQ_RABBITMQ_URL: "amqp://admin:admin123@host.containers.internal:5672"
+      HARNESS_STARTUP_TIMEOUT_MS: "60000"
+      ENV: "local"
+      USE_DB_AUTHENTICATION: "false"
+      NUM_WORKERS_PER_QUEUE: "8"
+      CRAWL_CONCURRENT_REQUESTS: "10"
+      MAX_CONCURRENT_JOBS: "5"
+      BROWSER_POOL_SIZE: "5"
+      BULL_AUTH_KEY: "CHANGEME"
+      LOGGING_LEVEL: "info"
+      BLOCK_MEDIA: "false"
+      ALLOW_LOCAL_WEBHOOKS: "false"
+    depends_on:
+      - playwright-service
+    ports:
+      - "3002:3002"
+    command: node dist/src/harness.js --start-docker
+    cpus: 4.0
+    mem_limit: 8G
+    memswap_limit: 8G
+    networks:
+      - firecrawl
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        compress: "true"
+
+  playwright-service:
+    image: ghcr.io/firecrawl/playwright-service:latest
+    environment:
+      PORT: "3000"
+      MAX_CONCURRENT_PAGES: "10"
+    cpus: 2.0
+    mem_limit: 4G
+    memswap_limit: 4G
+    tmpfs:
+      - /tmp/.cache:noexec,nosuid,size=512m
+    networks:
+      - firecrawl
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        compress: "true"
+
+networks:
+  firecrawl:
+    driver: bridge

@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  podman_exporter:
+    image: docker.io/omnibrian/podman-exporter:latest
+    container_name: podman_exporter
+    restart: always
+    network_mode: host
+    privileged: true
+    volumes:
+      - /run/podman/podman.sock:/run/podman/podman.sock:ro
+    command:
+      - --podman.socket=/run/podman/podman.sock
+      - --web.listen-address=:9102
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
