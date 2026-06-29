@@ -171,6 +171,7 @@ tail -n 100 /var/log/sync-ssl/sync_ssl.log
 ## 注意事项
 
 - cron 环境变量很少，建议在 cron 里写完整脚本路径，比如 `/root/sync_ssl.sh`。
+- 如果执行 `install.sh` 时提示 `crontab: not found`，请先安装 cron，例如 Debian/Ubuntu 使用 `apt install -y cron`，并确认服务已启动；安装脚本也会尝试降级写入 `/etc/cron.d/sync-ssl-to-esa` 或 `/etc/crontabs/root`。
 - 如果 `aliyun` 在 cron 里找不到，可以先执行 `which aliyun`，然后把 cron 里的 `PATH` 补全，或在脚本中使用 `aliyun` 的绝对路径。
 - 上传 ESA 前，脚本会先校验证书和私钥是否匹配；不匹配会直接停止。
 - 私钥文件会保存为 `600` 权限，证书目录会尽量设置为 `700` 权限。

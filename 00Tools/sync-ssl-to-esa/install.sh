@@ -19,6 +19,8 @@ DEFAULT_ESA_VERSION="2024-09-10"
 DEFAULT_CRON_SCHEDULE="1 0,8 * * *"
 DEFAULT_LOG_DIR="/var/log/sync-ssl"
 CRON_MARKER="# sync-ssl-to-esa"
+CRON_D_FILE="/etc/cron.d/sync-ssl-to-esa"
+BUSYBOX_ROOT_CRON="/etc/crontabs/root"
 
 log() {
   printf '%s\n' "$*"
@@ -131,18 +133,59 @@ write_config() {
 install_cron() {
   mkdir -p "$LOG_DIR"
 
+  cron_command=$(printf '%s SYNC_SSL_CONFIG=%s %s >> %s/sync_ssl.log 2>&1 %s' \
+    "$CRON_SCHEDULE" \
+    "$(shell_quote "$CONFIG_FILE")" \
+    "$(shell_quote "$INSTALL_PATH")" \
+    "$LOG_DIR" \
+    "$CRON_MARKER")
+
+  cron_d_command=$(printf '%s root SYNC_SSL_CONFIG=%s %s >> %s/sync_ssl.log 2>&1 %s' \
+    "$CRON_SCHEDULE" \
+    "$(shell_quote "$CONFIG_FILE")" \
+    "$(shell_quote "$INSTALL_PATH")" \
+    "$LOG_DIR" \
+    "$CRON_MARKER")
+
+  if ! command -v crontab >/dev/null 2>&1; then
+    if [ -d /etc/cron.d ]; then
+      {
+        printf 'SHELL=/bin/sh\n'
+        printf 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n'
+        printf '%s\n' "$cron_d_command"
+      } > "$CRON_D_FILE"
+      chmod 644 "$CRON_D_FILE" 2>/dev/null || true
+      log "WARN: crontab command not found. Wrote cron file instead: $CRON_D_FILE"
+      log "WARN: make sure cron is installed and running."
+      return 0
+    fi
+
+    if [ -d /etc/crontabs ]; then
+      touch "$BUSYBOX_ROOT_CRON"
+      cron_tmp=$(mktemp)
+      trap 'rm -f "$cron_tmp"' EXIT INT TERM
+      grep -v "$CRON_MARKER" "$BUSYBOX_ROOT_CRON" > "$cron_tmp" || true
+      printf '%s\n' "$cron_command" >> "$cron_tmp"
+      cp "$cron_tmp" "$BUSYBOX_ROOT_CRON"
+      chmod 600 "$BUSYBOX_ROOT_CRON" 2>/dev/null || true
+      log "WARN: crontab command not found. Updated BusyBox cron file instead: $BUSYBOX_ROOT_CRON"
+      log "WARN: make sure crond is installed and running."
+      return 0
+    fi
+
+    log "WARN: crontab command not found, cron job was not installed."
+    log "WARN: install cron first, then add this line:"
+    log "$cron_command"
+    return 0
+  fi
+
   cron_tmp=$(mktemp)
   cron_new=$(mktemp)
   trap 'rm -f "$cron_tmp" "$cron_new"' EXIT INT TERM
 
   crontab -l > "$cron_tmp" 2>/dev/null || true
   grep -v "$CRON_MARKER" "$cron_tmp" > "$cron_new" || true
-  printf '%s SYNC_SSL_CONFIG=%s %s >> %s/sync_ssl.log 2>&1 %s\n' \
-    "$CRON_SCHEDULE" \
-    "$(shell_quote "$CONFIG_FILE")" \
-    "$(shell_quote "$INSTALL_PATH")" \
-    "$LOG_DIR" \
-    "$CRON_MARKER" >> "$cron_new"
+  printf '%s\n' "$cron_command" >> "$cron_new"
 
   crontab "$cron_new"
 }
