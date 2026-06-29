@@ -4,8 +4,8 @@ set -eu
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 SOURCE_SCRIPT="$SCRIPT_DIR/sync_ssl_to_esa.sh"
 
-DEFAULT_INSTALL_PATH="/root/sync_ssl.sh"
-DEFAULT_CONFIG_FILE="/etc/sync-ssl-to-esa.env"
+DEFAULT_INSTALL_PATH="/repos/awesome-docker/00Tools/sync-ssl-to-esa/sync_ssl.sh"
+DEFAULT_CONFIG_FILE="/etc/configs/sync-ssl-to-esa.env"
 DEFAULT_SOURCE_BASE_URL="http://192.168.112.1:16602/"
 DEFAULT_SOURCE_USER="admin"
 DEFAULT_SOURCE_PASS="admin"
