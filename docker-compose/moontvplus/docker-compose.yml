@@ -3,7 +3,7 @@ services:
     image: ghcr.io/mtvpls/moontvplus:latest
     # image: ghcr.1ms.run/mtvpls/moontvplus:latest
     container_name: moontv-core2
-    restart: unless-stopped
+    restart: always
     ports:
       - '3001:3000'
     environment:
@@ -19,7 +19,7 @@ services:
     image: apache/kvrocks
     # image: docker.1ms.run/apache/kvrocks
     container_name: moontv-kvrocks2
-    restart: unless-stopped
+    restart: always
     volumes:
       - kvrocks-data:/var/lib/kvrocks/data
     networks:
@@ -28,7 +28,7 @@ services:
     image: xcq0607/lxserver:latest
     # image: docker.1ms.run/xcq0607/lxserver:latest
     container_name: lx-sync-server
-    restart: unless-stopped
+    restart: always
     ports:
       - "9527:9527"
     volumes:

@@ -20,7 +20,7 @@ services:
         network_mode: bridge
         ports:
             - 9090:9090
-        restart: unless-stopped
+        restart: always
         volumes:
             - prometheus:/etc/prometheus/
             - prometheus:/prometheus
@@ -37,7 +37,7 @@ services:
         network_mode: bridge
         ports:
             - 9091:3000
-        restart: unless-stopped
+        restart: always
         user: "0"
         volumes:
             - grafana:/var/lib/grafana

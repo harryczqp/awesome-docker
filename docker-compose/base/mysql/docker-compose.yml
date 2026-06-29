@@ -22,7 +22,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-    env_file: ./.env
+    env_file: /etc/configs/mysql/.env
     network_mode: host
 
 volumes:
