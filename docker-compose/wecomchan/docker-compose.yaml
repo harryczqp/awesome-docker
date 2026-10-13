@@ -12,7 +12,7 @@ services:
       - redis
 
   redis:
-    image: docker.io/bitnami/redis:6.2
+    image: docker.io/soldevelo/redis:6.2
     env_file: /etc/configs/wecomchan/wecomchan-setting.env
     networks:
       - go-wecomchan

@@ -30,6 +30,6 @@ WeComChan is a WeCom (WeChat Work) message forwarding gateway. This deployment r
 
 ### External
 - `docker.io/aozakiaoko/go-wecomchan:latest` — WeCom message forwarding API gateway
-- `docker.io/bitnami/redis:6.2` — in-memory data store for message queueing
+- `docker.io/soldevelo/redis:6.2` — in-memory data store for message queueing
 
 <!-- MANUAL: -->
