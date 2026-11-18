@@ -24,6 +24,7 @@ services:
       - /etc/configs/cli-proxy-api/config.yaml:/CLIProxyAPI/config.yaml
       - /etc/configs/cli-proxy-api/auths:/root/.cli-proxy-api
       - /etc/configs/cli-proxy-api/logs:/CLIProxyAPI/logs
+      - /etc/configs/cli-proxy-api/plugins:/CLIProxyAPI/plugins
     restart: always
     logging:
         driver: "json-file"

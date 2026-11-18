@@ -40,6 +40,11 @@ services:
       LOGGING_LEVEL: "info"
       BLOCK_MEDIA: "false"
       ALLOW_LOCAL_WEBHOOKS: "false"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "123654789"
+      POSTGRES_DB: "firecrawl"
+      POSTGRES_HOST: "host.containers.internal"
+      POSTGRES_PORT: "5432"
     depends_on:
       - playwright-service
     ports:

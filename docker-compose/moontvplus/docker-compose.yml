@@ -1,7 +1,8 @@
 services:
   moontv-core:
-    image: ghcr.io/mtvpls/moontvplus:latest
-    # image: ghcr.1ms.run/mtvpls/moontvplus:latest
+    # 通过 1ms GHCR 代理拉取 MoonTV Plus 镜像。
+    image: ghcr.1ms.run/mtvpls/moontvplus:latest
+    # image: ghcr.io/mtvpls/moontvplus:latest
     container_name: moontv-core2
     restart: always
     ports:
@@ -21,7 +22,8 @@ services:
     container_name: moontv-kvrocks2
     restart: always
     volumes:
-      - kvrocks-data:/var/lib/kvrocks/data
+      # 镜像声明并实际使用 /var/lib/kvrocks；挂到 /data 会产生易失的匿名卷。
+      - kvrocks-data:/var/lib/kvrocks
     networks:
       - moontv-network
   lx-sync-server:

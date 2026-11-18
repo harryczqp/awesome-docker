@@ -1,0 +1,115 @@
+services:
+  pansou:
+    image: ghcr.io/fish2018/pansou:latest
+    container_name: pansou
+    restart: always
+    ports:
+      - "0.0.0.0:8888:8888"
+    environment:
+      PORT: "8888"
+      TZ: "Asia/Shanghai"
+      CHANNELS: "tgsearchers3"
+      ENABLED_PLUGINS: "hunhepan,jikepan,pansearch,panta,qupansou,labi,duoduo,xuexizhinan"
+      CACHE_ENABLED: "true"
+      CACHE_PATH: "/app/cache"
+      CACHE_MAX_SIZE: "100"
+      CACHE_TTL: "60"
+      ASYNC_PLUGIN_ENABLED: "true"
+      ASYNC_RESPONSE_TIMEOUT: "4"
+      AUTH_ENABLED: "true"
+      AUTH_TOKEN_EXPIRY: "24"
+    env_file:
+      - /etc/configs/pansou-pancheck/.env
+    volumes:
+      - pansou-cache:/app/cache
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8888/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  pansou-and-pancheck:
+    image: docker.io/silent7897/pansou-and-pancheck:latest
+    container_name: pansou-and-pancheck
+    restart: always
+    ports:
+      - "0.0.0.0:1566:1566"
+    environment:
+      PORT: "1566"
+      HOST: "0.0.0.0"
+      LOG_LEVEL: "INFO"
+      AUTH_ENABLED: "true"
+      AUTH_TOKEN_EXPIRY: "24"
+      PANSOU_AUTH_ENABLED: "true"
+      PANSOU_AUTH_USERNAME: "admin"
+      SEARCH_API_URL: "http://pansou:8888"
+      CHECK_API_URL: "http://pancheck:6080/api/v1/links/check"
+    env_file:
+      - /etc/configs/pansou-pancheck/.env
+    depends_on:
+      pansou:
+        condition: service_healthy
+      pancheck:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:1566/api/health', timeout=3)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  pancheck:
+    image: docker.io/lampon/pancheck:latest
+    container_name: pancheck
+    restart: always
+    ports:
+      - "127.0.0.1:6080:6080"
+    extra_hosts:
+      - "host.containers.internal:host-gateway"
+    environment:
+      SERVER_PORT: "6080"
+      SERVER_MODE: "release"
+      SERVER_CORS_ORIGINS: ""
+      DATABASE_TYPE: "mysql"
+      DATABASE_HOST: "host.containers.internal"
+      DATABASE_PORT: "3306"
+      DATABASE_USER: "root"
+      DATABASE_DATABASE: "pancheck"
+      DATABASE_CHARSET: "utf8mb4"
+      CHECKER_DEFAULT_CONCURRENCY: "3"
+      CHECKER_TIMEOUT: "30"
+      REDIS_ENABLED: "true"
+      REDIS_HOST: "host.containers.internal"
+      REDIS_PORT: "6379"
+      REDIS_INVALID_TTL: "168"
+      TZ: "Asia/Shanghai"
+    env_file:
+      - /etc/configs/pansou-pancheck/.env
+    volumes:
+      - /etc/configs/pansou-pancheck/data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:6080/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  pansou-cache:
+    name: pansou-cache

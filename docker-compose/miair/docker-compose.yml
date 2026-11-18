@@ -1,10 +1,28 @@
+# services:
+#   mi-air:
+#     image: harryczqp/miair:latest
+#     container_name: miair
+#     restart: unless-stopped
+#     logging:
+#         driver: "json-file"
+#         options:
+#             max-size: "1m"
+#     network_mode: host
+
+
 services:
   mi-air:
-    image: harryczqp/miair:latest
-    container_name: miair
+    image: mrdeer1997/miair-next:latest
+    container_name: miair-next
     restart: unless-stopped
-    logging:
-        driver: "json-file"
-        options:
-            max-size: "1m"
     network_mode: host
+    environment:
+      MIAIR_WEB_PORT: "8300"
+    volumes:
+      - data:/app/data
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+volumes:
+  data:

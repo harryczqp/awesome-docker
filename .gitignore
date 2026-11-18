@@ -1,2 +1,5 @@
 .claude/*
 .omc/*
+**/.env
+**/.env.local/docker-compose/tvbox/
+/docker-compose/tvbox/

@@ -1,0 +1,83 @@
+services:
+  betterdesk:
+    image: ghcr.io/unitronix/betterdesk:3.5.4@sha256:d9a8eba5291ea11b440cd49f08ea0c511dd0507765a3db90d79b9a857009b521
+    restart: unless-stopped
+    env_file:
+      - /etc/configs/betterdesk/.env
+    # Preserve the upstream tini entrypoint; refuse an empty server-data volume.
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        test -n "$${RELAY_SERVERS:-}" || { echo "Set RELAY_SERVERS in /etc/configs/betterdesk/.env" >&2; exit 1; }
+        test -n "$${INIT_ADMIN_PASS:-}" || { echo "Set INIT_ADMIN_PASS in /etc/configs/betterdesk/.env" >&2; exit 1; }
+        test "$${INIT_ADMIN_PASS}" = "$${DEFAULT_ADMIN_PASSWORD:-}" || { echo "Admin passwords in /etc/configs/betterdesk/.env differ" >&2; exit 1; }
+        for file in db_v2.sqlite3 id_ed25519 id_ed25519.pub; do
+          test -s "/opt/rustdesk/$$file" || { echo "Missing server data file: $$file" >&2; exit 1; }
+        done
+        exec /entrypoint.sh
+    ports:
+      - "0.0.0.0:5000:5000"
+      - "21115:21115/tcp"
+      - "21116:21116/tcp"
+      - "21116:21116/udp"
+      - "21117:21117/tcp"
+      - "21118:21118/tcp"
+      - "21119:21119/tcp"
+      - "21121:21121/tcp"
+    volumes:
+      - type: volume
+        source: server-data
+        target: /opt/rustdesk
+        volume:
+          nocopy: true
+      - console-data:/app/data
+    environment:
+      NODE_ENV: production
+      TZ: Asia/Shanghai
+      PORT: "5000"
+      HOST: 0.0.0.0
+      API_HOST: 0.0.0.0
+      API_ENABLED: "false"
+      ENCRYPTED_ONLY: "1"
+      SERVER_BACKEND: betterdesk
+      HBBS_API_URL: http://127.0.0.1:21121/api
+      BETTERDESK_API_URL: http://127.0.0.1:21121/api
+      RUSTDESK_PATH: /opt/rustdesk
+      DATA_DIR: /app/data
+      DB_TYPE: sqlite
+      DB_URL: /opt/rustdesk/db_v2.sqlite3
+      DB_PATH: /opt/rustdesk/db_v2.sqlite3
+      AUTH_DB_PATH: /app/data/auth.db
+      PUB_KEY_PATH: /opt/rustdesk/id_ed25519.pub
+      API_KEY_PATH: /opt/rustdesk/.api_key
+      DOCKER: "true"
+      BETTERDESK_UPDATE_MODE: image
+      BETTERDESK_DOCKER_LAYOUT: single
+      BETTERDESK_IMAGE_TAG: "3.5.4"
+      # Required: use the endpoint reachable by existing clients.
+      ENROLLMENT_MODE: open
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETUID
+      - SETGID
+      - CHOWN
+      - FOWNER
+    healthcheck:
+      test: [CMD-SHELL, "curl -fsS http://localhost:21121/api/health >/dev/null && curl -fsS http://localhost:5000/health >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  server-data:
+  console-data:

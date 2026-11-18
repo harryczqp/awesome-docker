@@ -1,0 +1,31 @@
+services:
+  bilinote:
+    image: ghcr.io/jefferyhcool/bilinote:latest
+    container_name: bilinote
+    restart: always
+    environment:
+      TZ: Asia/Shanghai
+      HF_ENDPOINT: https://huggingface.co
+    # 镜像的 supervisord 默认值会覆盖环境变量，启动前同步仓库地址。
+    command:
+      - /bin/sh
+      - -c
+      - >-
+        sed -i 's|HF_ENDPOINT="https://hf-mirror.com"|HF_ENDPOINT="%(ENV_HF_ENDPOINT)s"|' /etc/supervisor/conf.d/supervisord.conf
+        && exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+    ports:
+      - "8484:80"
+    volumes:
+      - data:/app/backend/data
+      - /etc/configs/bilinote/config:/app/backend/config
+      - static:/app/backend/static
+      - models:/app/backend/models
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+
+volumes:
+  data:
+  static:
+  models:

@@ -1,13 +1,12 @@
 services:
   crawl4ai:
-    image: unclecode/crawl4ai:latest
+    image: docker.io/unclecode/crawl4ai:0.9.2
     container_name: crawl4ai
     restart: always
     ports:
-      - "11235:11235"
+      - "127.0.0.1:11235:11235"
     shm_size: 1g
+    env_file:
+      - /etc/configs/crawl4ai/.env
     environment:
-      - CRAWL4AI_EXECUTE_JS_ENABLED=true
-    # 如需 LLM 功能，取消下面注释并创建 .llm.env
-    # env_file:
-    #   - .llm.env
+      CRAWL4AI_EXECUTE_JS_ENABLED: "true"

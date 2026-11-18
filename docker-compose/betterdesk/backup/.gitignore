@@ -1,0 +1,5 @@
+# Original private keys, device identities and binaries must stay local.
+/rustdesk/
+/data/
+/.env
+/__pycache__/

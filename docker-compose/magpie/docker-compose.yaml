@@ -1,0 +1,32 @@
+services:
+  magpie:
+    image: ghcr.io/yetone/magpie:latest
+    deploy:
+      resources:
+        limits:
+          cpus: '0.90'       # 限制最多使用 90% 的 CPU
+          memory: 512M       # 限制最多使用 512MB 内存
+    pull_policy: always
+    container_name: magpie
+    command: ["web", "--addr", "0.0.0.0:3430", "--no-open"]
+    env_file:
+      - /etc/configs/magpie/.env
+    networks:
+      - magpie-network
+    ports:
+      - "3425:3425"                # 网关，调用需在 Web 界面创建网关密钥
+      - "3430:3430"                # Web 管理界面
+    volumes:
+      - data:/config
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+
+volumes:
+  data:
+
+networks:
+  magpie-network:
+    driver: bridge

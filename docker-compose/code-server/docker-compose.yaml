@@ -13,9 +13,9 @@ services:
     volumes:
       # - "./workdir:/home/coder/workdir"
       # - "$PWD/../:/docker-compose-file"
-      # - "$PWD/../../:/server-file"
+      - "$PWD/../../:/server-file"
       # - "$PWD/workdir/code-server/:/root/.config/code-server/config.yaml"
-      - "~/repos:/repos"
+      - "/home/harryczqp/repos:/repos"
     logging:
         driver: "json-file"
         options:

@@ -7,7 +7,9 @@ services:
     ports:
       - "3044:3000"
     environment:
+      - CODE=Admin@123456
       - OPENAI_API_KEY=sk-gvXdAm7EIOE6w88ed
-      - BASE_URL=http://10.8.8.1:8317
+      - BASE_URL=http://10.8.8.3:8317
       - ENABLE_MCP=true
+      - CUSTOM_MODELS=-all,+gpt-6-astra,+gpt-6-sol,+gpt-6.1-sol,+gpt-6.1-terra,+opencode-go/deepseek-v4.1-flash
     restart: unless-stopped
